@@ -8,19 +8,19 @@ type CodonPreference = HashMap<String, f32>;
 
 #[derive(Debug)]
 pub struct Organism {
-    org_id: i32,
-    division: String,
-    assembly: String,
-    taxid: i32,
-    species: String,
-    organelle: String,
-    translation_table: i32,
-    num_cds: i32,
-    num_codons: i32,
-    gc_perc: f32,
-    gc1_perc: f32,
-    gc2_perc: f32,
-    gc3_perc: f32,
+    pub org_id: i32,
+    pub division: String,
+    pub assembly: String,
+    pub taxid: i32,
+    pub species: String,
+    pub organelle: String,
+    pub translation_table: i32,
+    pub num_cds: i32,
+    pub num_codons: i32,
+    pub gc_perc: f32,
+    pub gc1_perc: f32,
+    pub gc2_perc: f32,
+    pub gc3_perc: f32,
 }
 
 #[derive(Debug)]
