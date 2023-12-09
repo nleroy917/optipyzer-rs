@@ -8,7 +8,31 @@ type CodonCountsByAminoAcid = HashMap<char, HashMap<Codon, i32>>;
 type CodonFracsByAminoAcid = HashMap<char, HashMap<Codon, f32>>;
 type UsageDataByOrganism = HashMap<i32, CodonFracsByAminoAcid>;
 
+
+///
+/// Find the prohibited codons for a particular organism
+/// and threshold. This is a map of amino acids to a list
+/// of codons.
+/// 
+/// E.g.
+/// {
+///  "A": ["GCT", "GCC", "GCA", "GCG"],
+///  ...
+/// }
+/// 
+/// # Arguments
+/// - `query` - The codon usage data
+/// - `threshold` - The threshold to use
+/// 
+/// # Returns
+/// - `ProhibitedCodons` - The prohibited codons
+/// 
 pub fn find_prohibited_codons(query: &UsageDataByOrganism, threshold: f32) -> ProhibitedCodons {
+    // check that the threshold is valid
+    if threshold < 0.0 || threshold > 1.0 {
+        panic!("Threshold must be between 0 and 1");
+    }
+
     let mut prohibited_codons: ProhibitedCodons = HashMap::new();
 
     for (_, amino_acid_map) in query {
@@ -121,7 +145,7 @@ mod tests {
 
     #[fixture]
     fn org_id() -> i32 {
-        242
+        16815 // e. coli
     }
 
     #[rstest]
@@ -140,5 +164,20 @@ mod tests {
         // but thats a ton of work, so we'll just check
         // that the operation was successful
         assert!(fracs.is_ok());
+    }
+
+    #[rstest]
+    fn test_find_prohibited_codons(db: Database, org_id: i32) {
+
+        let fracs = get_codon_fracs_by_amino_acid(&db, &org_id).unwrap();
+        let query = HashMap::from([(org_id, fracs)]);
+
+        let prohibited_codons = find_prohibited_codons(&query, 0.1);
+
+        let prohibted_arginines = prohibited_codons.get(&'R').unwrap();
+        assert!(prohibted_arginines.contains(&Codon::CGA));
+        assert!(prohibted_arginines.contains(&Codon::CGG));
+        assert!(prohibted_arginines.contains(&Codon::AGA));
+        assert!(prohibted_arginines.contains(&Codon::AGG));
     }
 }
