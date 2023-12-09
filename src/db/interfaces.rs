@@ -41,6 +41,8 @@ impl Database {
 
         let res = rows.next()?;
 
+        // TODO: this is incorrect and the columns dont match up with the model
+        // we need to fix this
         match res {
             Some(row) => Ok(CodonUsage::new(
                 // row.get(0)?, skip org_id
