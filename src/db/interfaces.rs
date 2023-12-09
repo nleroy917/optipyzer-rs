@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use rusqlite::{Connection, Result};
 
-use crate::models::CodonUsage;
+use crate::models::{CodonUsage, Organism};
 use crate::consts::AACodonLibrary;
 
 pub struct Database {
@@ -10,6 +10,15 @@ pub struct Database {
 }
 
 impl Database {
+    ///
+    /// Create a new database connection
+    /// 
+    /// # Arguments
+    /// - `db` - The path to the database
+    /// 
+    /// # Returns
+    /// - `Database` - The database connection
+    /// 
     pub fn new(db: &str) -> Result<Database, Box<dyn std::error::Error>> {
         let conn = Connection::open(db)?;
 
@@ -108,5 +117,68 @@ impl Database {
                 return Err(msg.into());
             }
         }
+    }
+
+    pub fn get_organism(&self, org_id: i32) -> Result<Organism, Box<dyn std::error::Error>> {
+        let mut stmt = self.conn.prepare("SELECT * FROM organisms WHERE org_id = ?")?;
+        let mut rows = stmt.query([org_id])?;
+
+        let res = rows.next()?;
+
+        match res {
+            Some(row) => {
+                Ok(Organism {
+                    org_id: row.get(0)?,
+                    division: row.get(1)?,
+                    assembly: row.get(2)?,
+                    taxid: row.get(3)?,
+                    species: row.get(4)?,
+                    organelle: row.get(5)?,
+                    translation_table: row.get(6)?,
+                    num_cds: row.get(7)?,
+                    num_codons: row.get(8)?,
+                    gc_perc: row.get(9)?,
+                    gc1_perc: row.get(10)?,
+                    gc2_perc: row.get(11)?,
+                    gc3_perc: row.get(12)?,
+                })
+            },
+            None => {
+                let msg = format!("No organism found at org_id: {org_id}");
+                Err(msg.into())
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use rstest::{rstest, fixture};
+
+    #[fixture]
+    fn org_id() -> i32 {
+        242
+    }
+
+    #[rstest]
+    fn get_org(org_id: i32) {
+        let db = Database::new("codon.db").unwrap();
+        let org = db.get_organism(org_id).unwrap();
+
+        assert_eq!(org.org_id, org_id);
+        assert_eq!(org.division, "refseq");
+        assert_eq!(org.assembly, "GCF_000016525.1");
+        assert_eq!(org.taxid, 420247);
+        assert_eq!(org.species, "Methanobrevibacter smithii ATCC 35061");
+        assert_eq!(org.organelle, "genomic");
+        assert_eq!(org.translation_table, 11);
+        assert_eq!(org.num_cds, 1710);
+        assert_eq!(org.num_codons, 543072);
+        assert_eq!(org.gc_perc, 32.14);
+        assert_eq!(org.gc1_perc, 43.53);
+        assert_eq!(org.gc2_perc, 32.58);
+        assert_eq!(org.gc3_perc, 20.32);
     }
 }
