@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
-pub type ProhibitedCodons = HashMap<char, Vec<String>>;
-pub type Query = HashMap<String, AminoAcidMap>;
-type AminoAcidMap = HashMap<char, CodonPreference>;
-type CodonPreference = HashMap<String, f32>;
+pub type ProhibitedCodons = HashMap<char, Vec<Codon>>;
 
+type AminoAcidMap = HashMap<char, CodonPreference>;
+type CodonPreference = HashMap<Codon, f32>;
 
 #[derive(Debug)]
 pub struct Organism {
@@ -23,71 +22,228 @@ pub struct Organism {
     pub gc3_perc: f32,
 }
 
+#[allow(clippy::upper_case_acronyms)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub enum Codon {
+    AAA,
+    AAC,
+    AAG,
+    AAT,
+    ACA,
+    ACC,
+    ACG,
+    ACT,
+    AGA,
+    AGC,
+    AGG,
+    AGT,
+    ATA,
+    ATC,
+    ATG,
+    ATT,
+    CAA,
+    CAC,
+    CAG,
+    CAT,
+    CCA,
+    CCC,
+    CCG,
+    CCT,
+    CGA,
+    CGC,
+    CGG,
+    CGT,
+    CTA,
+    CTC,
+    CTG,
+    CTT,
+    GAA,
+    GAC,
+    GAG,
+    GAT,
+    GCA,
+    GCC,
+    GCG,
+    GCT,
+    GGA,
+    GGC,
+    GGG,
+    GGT,
+    GTA,
+    GTC,
+    GTG,
+    GTT,
+    TAA,
+    TAC,
+    TAG,
+    TAT,
+    TCA,
+    TCC,
+    TCG,
+    TCT,
+    TGA,
+    TGC,
+    TGG,
+    TGT,
+    TTA,
+    TTC,
+    TTG,
+    TTT,
+}
+
 #[derive(Debug)]
 pub struct CodonUsage {
-    pub org_id: i32,
-    pub ttt: i32,
-    pub ttc: i32,
-    pub tta: i32,
-    pub ttg: i32,
-    pub ctt: i32,
-    pub ctc: i32,
-    pub cta: i32,
-    pub ctg: i32,
-    pub att: i32,
-    pub atc: i32,
-    pub ata: i32,
-    pub atg: i32,
-    pub gtt: i32,
-    pub gtc: i32,
-    pub gta: i32,
-    pub gtg: i32,
-    pub tat: i32,
-    pub tac: i32,
-    pub taa: i32,
-    pub tag: i32,
-    pub cat: i32,
-    pub cac: i32,
-    pub caa: i32,
-    pub cag: i32,
-    pub aat: i32,
-    pub aac: i32,
-    pub aaa: i32,
-    pub aag: i32,
-    pub gat: i32,
-    pub gac: i32,
-    pub gaa: i32,
-    pub gag: i32,
-    pub tct: i32,
-    pub tcc: i32,
-    pub tca: i32,
-    pub tcg: i32,
-    pub cct: i32,
-    pub ccc: i32,
-    pub cca: i32,
-    pub ccg: i32,
-    pub act: i32,
-    pub acc: i32,
-    pub aca: i32,
-    pub acg: i32,
-    pub gct: i32,
-    pub gcc: i32,
-    pub gca: i32,
-    pub gcg: i32,
-    pub tgt: i32,
-    pub tgc: i32,
-    pub tga: i32,
-    pub tgg: i32,
-    pub cgt: i32,
-    pub cgc: i32,
-    pub cga: i32,
-    pub cgg: i32,
-    pub agt: i32,
-    pub agc: i32,
-    pub aga: i32,
-    pub agg: i32,
-    pub ggt: i32,
-    pub ggc: i32,
-    pub gga: i32,
-    pub ggg: i32,
+    codon_usage: HashMap<Codon, i32>,
+}
+
+#[allow(clippy::too_many_arguments)] // better way than just enumerating all codons?
+impl CodonUsage {
+    pub fn new(
+        aaa: i32,
+        aac: i32,
+        aag: i32,
+        aat: i32,
+        aca: i32,
+        acc: i32,
+        acg: i32,
+        act: i32,
+        aga: i32,
+        agc: i32,
+        agg: i32,
+        agt: i32,
+        ata: i32,
+        atc: i32,
+        atg: i32,
+        att: i32,
+        caa: i32,
+        cac: i32,
+        cag: i32,
+        cat: i32,
+        cca: i32,
+        ccc: i32,
+        ccg: i32,
+        cct: i32,
+        cga: i32,
+        cgc: i32,
+        cgg: i32,
+        cgt: i32,
+        cta: i32,
+        ctc: i32,
+        ctg: i32,
+        ctt: i32,
+        gaa: i32,
+        gac: i32,
+        gag: i32,
+        gat: i32,
+        gca: i32,
+        gcc: i32,
+        gcg: i32,
+        gct: i32,
+        gga: i32,
+        ggc: i32,
+        ggg: i32,
+        ggt: i32,
+        gta: i32,
+        gtc: i32,
+        gtg: i32,
+        gtt: i32,
+        taa: i32,
+        tac: i32,
+        tag: i32,
+        tat: i32,
+        tca: i32,
+        tcc: i32,
+        tcg: i32,
+        tct: i32,
+        tga: i32,
+        tgc: i32,
+        tgg: i32,
+        tgt: i32,
+        tta: i32,
+        ttc: i32,
+        ttg: i32,
+        ttt: i32,
+    ) -> CodonUsage {
+        let mut codon_usage = HashMap::new();
+
+        codon_usage.insert(Codon::AAA, aaa);
+        codon_usage.insert(Codon::AAC, aac);
+        codon_usage.insert(Codon::AAG, aag);
+        codon_usage.insert(Codon::AAT, aat);
+        codon_usage.insert(Codon::ACA, aca);
+        codon_usage.insert(Codon::ACC, acc);
+        codon_usage.insert(Codon::ACG, acg);
+        codon_usage.insert(Codon::ACT, act);
+        codon_usage.insert(Codon::AGA, aga);
+        codon_usage.insert(Codon::AGC, agc);
+        codon_usage.insert(Codon::AGG, agg);
+        codon_usage.insert(Codon::AGT, agt);
+        codon_usage.insert(Codon::ATA, ata);
+        codon_usage.insert(Codon::ATC, atc);
+        codon_usage.insert(Codon::ATG, atg);
+        codon_usage.insert(Codon::ATT, att);
+        codon_usage.insert(Codon::CAA, caa);
+        codon_usage.insert(Codon::CAC, cac);
+        codon_usage.insert(Codon::CAG, cag);
+        codon_usage.insert(Codon::CAT, cat);
+        codon_usage.insert(Codon::CCA, cca);
+        codon_usage.insert(Codon::CCC, ccc);
+        codon_usage.insert(Codon::CCG, ccg);
+        codon_usage.insert(Codon::CCT, cct);
+        codon_usage.insert(Codon::CGA, cga);
+        codon_usage.insert(Codon::CGC, cgc);
+        codon_usage.insert(Codon::CGG, cgg);
+        codon_usage.insert(Codon::CGT, cgt);
+        codon_usage.insert(Codon::CTA, cta);
+        codon_usage.insert(Codon::CTC, ctc);
+        codon_usage.insert(Codon::CTG, ctg);
+        codon_usage.insert(Codon::CTT, ctt);
+        codon_usage.insert(Codon::GAA, gaa);
+        codon_usage.insert(Codon::GAC, gac);
+        codon_usage.insert(Codon::GAG, gag);
+        codon_usage.insert(Codon::GAT, gat);
+        codon_usage.insert(Codon::GCA, gca);
+        codon_usage.insert(Codon::GCC, gcc);
+        codon_usage.insert(Codon::GCG, gcg);
+        codon_usage.insert(Codon::GCT, gct);
+        codon_usage.insert(Codon::GGA, gga);
+        codon_usage.insert(Codon::GGC, ggc);
+        codon_usage.insert(Codon::GGG, ggg);
+        codon_usage.insert(Codon::GGT, ggt);
+        codon_usage.insert(Codon::GTA, gta);
+        codon_usage.insert(Codon::GTC, gtc);
+        codon_usage.insert(Codon::GTG, gtg);
+        codon_usage.insert(Codon::GTT, gtt);
+        codon_usage.insert(Codon::TAA, taa);
+        codon_usage.insert(Codon::TAC, tac);
+        codon_usage.insert(Codon::TAG, tag);
+        codon_usage.insert(Codon::TAT, tat);
+        codon_usage.insert(Codon::TCA, tca);
+        codon_usage.insert(Codon::TCC, tcc);
+        codon_usage.insert(Codon::TCG, tcg);
+        codon_usage.insert(Codon::TCT, tct);
+        codon_usage.insert(Codon::TGA, tga);
+        codon_usage.insert(Codon::TGC, tgc);
+        codon_usage.insert(Codon::TGG, tgg);
+        codon_usage.insert(Codon::TGT, tgt);
+        codon_usage.insert(Codon::TTA, tta);
+        codon_usage.insert(Codon::TTC, ttc);
+        codon_usage.insert(Codon::TTG, ttg);
+        codon_usage.insert(Codon::TTT, ttt);
+
+        CodonUsage { codon_usage }
+    }
+
+    pub fn get(&self, codon: &Codon) -> i32 {
+        self.codon_usage.get(codon).unwrap().to_owned()
+    }
+}
+
+impl IntoIterator for CodonUsage {
+    type Item = (Codon, i32);
+    type IntoIter = std::collections::hash_map::IntoIter<Codon, i32>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.codon_usage.into_iter()
+    }
 }
