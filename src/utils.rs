@@ -1,6 +1,6 @@
-use std::f32;
 use statrs::statistics::Statistics;
 use std::collections::HashMap;
+use std::f32;
 
 use crate::consts::{AACodonLibrary, NumCodonsByAA};
 use crate::db::Database;
@@ -139,7 +139,8 @@ pub fn find_prohibited_codons(query: &UsageDataByOrganism, threshold: f32) -> Pr
 /// This will adjust an individual organisms codon tables to set
 /// the codons in the prohibited codons list to 0.0 and then renormalize
 /// the acceptable codons so that each residue's total sum of codon preferences
-/// is equal to 1.
+/// is equal to 1. This will remove the codons in place. This helps to
+/// abvoid a copy of the data.
 ///
 /// # Arguments
 /// - `query` - The codon usage data. This is a map of organism IDs to a map of amino acids to a map of codons to codon preferences (confusing I know)
@@ -149,7 +150,7 @@ pub fn find_prohibited_codons(query: &UsageDataByOrganism, threshold: f32) -> Pr
 /// # Returns
 /// - `UsageDataByOrganism` - The codon usage data with the prohibited codons removed
 pub fn remove_prohibited_codons(
-    query: &UsageDataByOrganism,
+    query: &mut UsageDataByOrganism,
     prohibited_codons: &ProhibitedCodons,
     var_threshold: f32,
 ) {
@@ -184,10 +185,9 @@ pub fn remove_prohibited_codons(
             for codon_preference in codon_usage.values() {
                 for (codon, preference) in codon_preference {
                     preference_values
-                      .entry(codon.to_owned())
-                      .or_default()
-                      .push(*preference)
-                      
+                        .entry(codon.to_owned())
+                        .or_default()
+                        .push(*preference)
                 }
             }
         }
@@ -203,27 +203,19 @@ pub fn remove_prohibited_codons(
         // loop through the preference value list of variances
         // and find the minimum variance
         let mut min_variance: Vec<f64> = vec![f64::MAX];
-        
+
         for (codon, variance) in preference_values_variances {
-            
             // get average variance
             let mean = min_variance.to_owned().mean() as f32;
 
             if variance < (1.0 - var_threshold) * mean {
                 min_variance = vec![variance as f64];
-                allowed_codons
-                    .entry(aa)
-                    .or_default()
-                    .push(codon.to_owned());
+                allowed_codons.entry(aa).or_default().push(codon.to_owned());
             } else if variance < (1.0 + var_threshold) * mean {
                 min_variance.push(variance as f64);
-                allowed_codons
-                    .entry(aa)
-                    .or_default()
-                    .push(codon.to_owned());
+                allowed_codons.entry(aa).or_default().push(codon.to_owned());
             }
-        }   
-
+        }
     }
 
     // remove allowed codons from prohibited codons
@@ -232,13 +224,32 @@ pub fn remove_prohibited_codons(
 
     for (aa, allowed_codons) in allowed_codons {
         for (i, _) in allowed_codons.iter().enumerate() {
-            prohibited_codons_cleaned
-                .entry(aa)
-                .or_default()
-                .remove(i);
+            prohibited_codons_cleaned.entry(aa).or_default().remove(i);
         }
     }
 
+    // finally, loop through the query and make the adjustments if necessary
+    for (_, codon_usage) in query {
+        for (aa, codon_preference) in codon_usage {
+            let mut acceptable_codon_sum: f32 = 0.0;
+
+            if prohibited_codons.contains_key(aa) {
+                for (codon, pref) in &mut *codon_preference {
+                    if !prohibited_codons[aa].contains(codon) {
+                        acceptable_codon_sum += *pref;
+                    }
+                }
+
+                for (codon, pref) in &mut *codon_preference {
+                    if prohibited_codons[aa].contains(codon) && acceptable_codon_sum > 0.0 {
+                        *pref /= acceptable_codon_sum;
+                    } else {
+                        *pref = 0.0;
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
