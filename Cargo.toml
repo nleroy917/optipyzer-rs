@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 bio = "1.4.0"
 rusqlite = { version = "0.30.0", features = ["bundled"] }
+statrs = "0.16.0"
 
 [dev-dependencies]
 rstest = "0.18.2"

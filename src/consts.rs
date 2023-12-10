@@ -7,6 +7,44 @@ pub const DEFAULT_ITERATIONS: i32 = 1000;
 pub const VALID_AMINO_ACIDS: &str = "ACDEFGHIKLMNPQRSTVWY*";
 pub const VALID_NUCLEOTIDES: &str = "ACGT";
 
+pub struct NumCodonsByAA {
+    pub num_codons: HashMap<char, i32>,
+}
+
+impl NumCodonsByAA {
+    pub fn new() -> NumCodonsByAA {
+        let num_codons = HashMap::from([
+            ('A', 4),
+            ('R', 6),
+            ('N', 2),
+            ('D', 2),
+            ('C', 2),
+            ('Q', 2),
+            ('E', 2),
+            ('G', 4),
+            ('H', 2),
+            ('I', 3),
+            ('L', 6),
+            ('K', 2),
+            ('F', 2),
+            ('P', 4),
+            ('S', 6),
+            ('T', 4),
+            ('Y', 2),
+            ('V', 4),
+            ('*', 3),
+        ]);
+
+        NumCodonsByAA { num_codons }
+    }
+}
+
+impl Default for NumCodonsByAA {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub struct AACodonLibrary {
     map: HashMap<char, Vec<Codon>>,
 }
@@ -81,6 +119,12 @@ impl IntoIterator for AACodonLibrary {
 
     fn into_iter(self) -> Self::IntoIter {
         self.map.into_iter()
+    }
+}
+
+impl Default for AACodonLibrary {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -162,5 +206,11 @@ impl CodonToAA {
 
     pub fn convert(&self, codon: &Codon) -> Option<char> {
         self.map.get(codon).copied()
+    }
+}
+
+impl Default for CodonToAA {
+    fn default() -> Self {
+        Self::new()
     }
 }
