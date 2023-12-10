@@ -252,6 +252,54 @@ pub fn remove_prohibited_codons(
     }
 }
 
+pub fn equal_optimiation(query: &mut UsageDataByOrganism) {
+    todo!()
+}
+
+pub fn get_species_weight() {
+    todo!()
+}
+
+pub fn averaged_table() {
+    todo!()
+}
+
+pub fn get_multitable_randomnumbers() {
+    todo!()
+}
+
+pub fn convert_dna_to_protein() {
+    todo!()
+}
+
+pub fn validate_query() {
+    todo!()
+}
+
+pub fn optimize_codon_usage() {
+    todo!()
+}
+
+pub fn get_rca_xyz() {
+    todo!()
+}
+
+pub fn calculate_predicted_expression() {
+    todo!()
+}
+
+pub fn get_redundantaa_rna() {
+    todo!()
+}
+
+pub fn optimize_multitable_sd() {
+    todo!()
+}
+
+pub fn optimize_multitable_ad() {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
