@@ -268,8 +268,82 @@ pub fn get_multitable_randomnumbers() {
     todo!()
 }
 
-pub fn convert_dna_to_protein() {
-    todo!()
+pub fn convert_dna_to_protein(seq: &str) -> String {
+    let mut protein = String::new();
+
+    for i in (0..seq.len()).step_by(3) {
+        let codon = &seq[i..i+3];
+        match codon.to_uppercase().as_str() {
+            "GCT" => protein.push('A'),
+            "GCC" => protein.push('A'),
+            "GCA" => protein.push('A'),
+            "GCG" => protein.push('A'),
+            "CGT" => protein.push('R'),
+            "CGC" => protein.push('R'),
+            "CGA" => protein.push('R'),
+            "CGG" => protein.push('R'),
+            "AGA" => protein.push('R'),
+            "AGG" => protein.push('R'),
+            "AAT" => protein.push('N'),
+            "AAC" => protein.push('N'),
+            "GAT" => protein.push('D'),
+            "GAC" => protein.push('D'),
+            "TGT" => protein.push('C'),
+            "TGC" => protein.push('C'),
+            "CAA" => protein.push('Q'),
+            "CAG" => protein.push('Q'),
+            "GAA" => protein.push('E'),
+            "GAG" => protein.push('E'),
+            "GGT" => protein.push('G'),
+            "GGC" => protein.push('G'),
+            "GGA" => protein.push('G'),
+            "GGG" => protein.push('G'),
+            "CAT" => protein.push('H'),
+            "CAC" => protein.push('H'),
+            "ATT" => protein.push('I'),
+            "ATC" => protein.push('I'),
+            "ATA" => protein.push('I'),
+            "TTA" => protein.push('L'),
+            "TTG" => protein.push('L'),
+            "CTT" => protein.push('L'),
+            "CTC" => protein.push('L'),
+            "CTA" => protein.push('L'),
+            "CTG" => protein.push('L'),
+            "AAA" => protein.push('K'),
+            "AAG" => protein.push('K'),
+            "ATG" => protein.push('M'),
+            "TTT" => protein.push('F'),
+            "TTC" => protein.push('F'),
+            "CCT" => protein.push('P'),
+            "CCC" => protein.push('P'),
+            "CCA" => protein.push('P'),
+            "CCG" => protein.push('P'),
+            "TCT" => protein.push('S'),
+            "TCC" => protein.push('S'),
+            "TCA" => protein.push('S'),
+            "TCG" => protein.push('S'),
+            "AGT" => protein.push('S'),
+            "AGC" => protein.push('S'),
+            "ACT" => protein.push('T'),
+            "ACC" => protein.push('T'),
+            "ACA" => protein.push('T'),
+            "ACG" => protein.push('T'),
+            "TGG" => protein.push('W'),
+            "TAT" => protein.push('Y'),
+            "TAC" => protein.push('Y'),
+            "GTT" => protein.push('V'),
+            "GTC" => protein.push('V'),
+            "GTA" => protein.push('V'),
+            "GTG" => protein.push('V'),
+            "TAA" => protein.push('*'),
+            "TAG" => protein.push('*'),
+            "TGA" => protein.push('*'),
+            _ => protein.push('?'),
+        };
+
+    }
+
+    protein
 }
 
 pub fn validate_query() {
