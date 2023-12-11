@@ -9,6 +9,7 @@ use crate::models::{Codon, ProhibitedCodons};
 type CodonCountsByAminoAcid = HashMap<char, HashMap<Codon, i32>>;
 type CodonFracsByAminoAcid = HashMap<char, HashMap<Codon, f32>>;
 type UsageDataByOrganism = HashMap<i32, CodonFracsByAminoAcid>;
+type SpeciesWeights = HashMap<i32, f32>;
 
 ///
 /// Get the codon counts for a particular organism, this is
@@ -256,8 +257,22 @@ pub fn equal_optimiation(query: &mut UsageDataByOrganism) {
     todo!()
 }
 
-pub fn get_species_weight() {
-    todo!()
+///
+/// Normalizes the species weight requirements to set 1 as the
+/// lowest weight value. For example, if the lowest weight value
+/// is 0.5, then all weight values will be multiplied by 2.
+/// 
+/// # Arguments
+/// - `weights` - The species weights
+/// 
+/// # Returns
+/// - `SpeciesWeights` - The normalized species weights
+pub fn normalize_species_weight_requirements(weights: &mut SpeciesWeights) {
+    let min_weight = *weights.values().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap();
+    
+    for weight in weights.values_mut() {
+        *weight /= min_weight;
+    }
 }
 
 pub fn averaged_table() {
@@ -344,10 +359,6 @@ pub fn convert_dna_to_protein(seq: &str) -> String {
     }
 
     protein
-}
-
-pub fn validate_query() {
-    todo!()
 }
 
 pub fn optimize_codon_usage() {
