@@ -230,7 +230,7 @@ pub fn remove_prohibited_codons(
     }
 
     // finally, loop through the query and make the adjustments if necessary
-    for (_, codon_usage) in query {
+    for codon_usage in query.values_mut() {
         for (aa, codon_preference) in codon_usage {
             let mut acceptable_codon_sum: f32 = 0.0;
 
@@ -261,20 +261,27 @@ pub fn equal_optimiation(query: &mut UsageDataByOrganism) {
 /// Normalizes the species weight requirements to set 1 as the
 /// lowest weight value. For example, if the lowest weight value
 /// is 0.5, then all weight values will be multiplied by 2.
-/// 
+///
 /// # Arguments
 /// - `weights` - The species weights
-/// 
+///
 /// # Returns
 /// - `SpeciesWeights` - The normalized species weights
 pub fn normalize_species_weight_requirements(weights: &mut SpeciesWeights) {
-    let min_weight = *weights.values().min_by(|a, b| a.partial_cmp(b).unwrap()).unwrap();
-    
+    let min_weight = *weights
+        .values()
+        .min_by(|a, b| a.partial_cmp(b).unwrap())
+        .unwrap();
+
     for weight in weights.values_mut() {
         *weight /= min_weight;
     }
 }
 
+///
+/// Creates the 0th iteration multi-table, which is just an average of the individual codon preferences of species
+/// after removing prohibited codons
+///
 pub fn averaged_table() {
     todo!()
 }
@@ -287,7 +294,7 @@ pub fn convert_dna_to_protein(seq: &str) -> String {
     let mut protein = String::new();
 
     for i in (0..seq.len()).step_by(3) {
-        let codon = &seq[i..i+3];
+        let codon = &seq[i..i + 3];
         match codon.to_uppercase().as_str() {
             "GCT" => protein.push('A'),
             "GCC" => protein.push('A'),
@@ -355,7 +362,6 @@ pub fn convert_dna_to_protein(seq: &str) -> String {
             "TGA" => protein.push('*'),
             _ => protein.push('?'),
         };
-
     }
 
     protein
@@ -369,8 +375,52 @@ pub fn get_rca_xyz() {
     todo!()
 }
 
-pub fn calculate_predicted_expression() {
-    todo!()
+///
+/// calculates the rca (a metric for comparison of predicted gene expression)
+/// for each species based on the formula:
+/// $$
+/// \text{RCA} = \left( \Pi_{i=1}^{L} \text{RCA}_{xyz}(l) \right)^{\frac{1}{L}}
+/// $$
+/// where,
+/// $$
+/// \text{RCA}_{xyz} = \frac{X(x,y,z)}{X_1(x),X_2(y),X_3(z)}
+/// $$
+/// and uses it to predict protein expression,
+/// as rca is correlated to the log of protein expression
+pub fn calculate_predicted_expression(
+    rca_xyz: HashMap<i32, HashMap<Codon, f32>>,
+    sequence: &str,
+) -> HashMap<i32, f32> {
+    let mut rca: HashMap<i32, f32> = HashMap::new();
+    for (org_id, codon_preferences) in rca_xyz {
+        rca.insert(org_id, 1.0_f32);
+        for i in (0..sequence.len()).step_by(3) {
+            let codon = &sequence[i..i + 3];
+            let codon = Codon::from(codon);
+            rca.insert(
+                org_id,
+                rca[&org_id] * codon_preferences.get(&codon).unwrap(),
+            );
+        }
+        // raise to the power of 1/L
+        rca.insert(
+            org_id,
+            rca[&org_id].powf(1.0 / (sequence.len() as f32 / 3.0)),
+        );
+    }
+
+    let min_exp = rca
+        .values()
+        .min_by(|a, b| a.partial_cmp(b).unwrap())
+        .unwrap()
+        .to_owned();
+
+    // normalize
+    for exp in rca.values_mut() {
+        *exp /= min_exp;
+    }
+
+    rca
 }
 
 pub fn get_redundantaa_rna() {

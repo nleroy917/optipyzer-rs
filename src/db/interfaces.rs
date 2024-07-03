@@ -1,9 +1,11 @@
-use rusqlite::{Connection, Result};
+use std::path::Path;
+
+use rusqlite::Connection;
 
 use crate::models::{CodonUsage, Organism};
 
 pub struct Database {
-    pub conn: Connection,
+    conn: Connection,
 }
 
 impl Database {
@@ -16,7 +18,10 @@ impl Database {
     /// # Returns
     /// - `Database` - The database connection
     ///
-    pub fn new(db: &str) -> Result<Database, Box<dyn std::error::Error>> {
+    pub fn new<P>(db: P) -> Result<Database, Box<dyn std::error::Error>>
+    where
+        P: AsRef<Path>,
+    {
         let conn = Connection::open(db)?;
 
         Ok(Database { conn })
@@ -163,6 +168,7 @@ mod tests {
     use super::*;
 
     use rstest::{fixture, rstest};
+    use pretty_assertions::assert_eq;
 
     #[fixture]
     fn org_id() -> i32 {
@@ -174,8 +180,28 @@ mod tests {
         let db = Database::new("codon.db").unwrap();
         let usage = db.get_codon_usage_for_organism(&org_id).unwrap();
 
-        for (_, count) in usage {
-            assert!(count > 0);
+        let real_counts = vec![
+            17199, 5873, 23827, 7444, 9137, 935, 2186, 3150, 29398, 6398, 14811, 12205, 19128,
+            2254, 12914, 2590, 16094, 5377, 1112, 339, 6425, 2151, 7754, 4897, 27522, 8702, 38049,
+            5074, 26980, 8136, 33697, 4394, 10005, 3613, 10002, 226, 8200, 773, 6128, 2234, 13743,
+            3635, 10929, 368, 15623, 2225, 14369, 6128, 5324, 1707, 259, 3509, 2479, 383, 388, 145,
+            8004, 3170, 9984, 2777, 14346, 2903, 16703, 2058,
+        ];
+
+        let codons = vec![
+            "TTT", "TTC", "TTA", "TTG", "CTT", "CTC", "CTA", "CTG", "ATT", "ATC", "ATA", "ATG",
+            "GTT", "GTC", "GTA", "GTG", "TAT", "TAC", "TAA", "TAG", "CAT", "CAC", "CAA", "CAG",
+            "AAT", "AAC", "AAA", "AAG", "GAT", "GAC", "GAA", "GAG", "TCT", "TCC", "TCA", "TCG",
+            "CCT", "CCC", "CCA", "CCG", "ACT", "ACC", "ACA", "ACG", "GCT", "GCC", "GCA", "GCG",
+            "TGT", "TGC", "TGA", "TGG", "CGT", "CGC", "CGA", "CGG", "AGT", "AGC", "AGA", "AGG",
+            "GGT", "GGC", "GGA", "GGG",
+        ];
+
+        let codons_with_count: Vec<(&str, i32)> = codons.iter().zip(real_counts.iter()).map(|(&c, &r)| (c, r)).collect();
+        
+        for (codon, count) in codons_with_count {
+            let pulled_codon_usage = usage.get(&codon.into());
+            assert_eq!(pulled_codon_usage, count);
         }
     }
 
