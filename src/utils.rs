@@ -2,6 +2,8 @@ use statrs::statistics::Statistics;
 use std::collections::HashMap;
 use std::f32;
 
+use anyhow::Result;
+
 use crate::consts::{AACodonLibrary, NumCodonsByAA};
 use crate::db::Database;
 use crate::models::{Codon, ProhibitedCodons};
@@ -111,11 +113,10 @@ pub fn get_codon_fracs_by_amino_acid(
 /// # Returns
 /// - `ProhibitedCodons` - The prohibited codons
 ///
-pub fn find_prohibited_codons(query: &UsageDataByOrganism, threshold: f32) -> ProhibitedCodons {
+pub fn find_prohibited_codons(query: &UsageDataByOrganism, threshold: f32) -> Result<ProhibitedCodons> {
     // check that the threshold is valid
-    #[allow(clippy::manual_range_contains)]
-    if threshold < 0.0 || threshold > 1.0 {
-        panic!("Threshold must be between 0 and 1");
+    if !(0.0..=1.0).contains(&threshold) {
+        anyhow::bail!("Threshold must be between 0 and 1")
     }
 
     let mut prohibited_codons: ProhibitedCodons = HashMap::new();
@@ -133,7 +134,7 @@ pub fn find_prohibited_codons(query: &UsageDataByOrganism, threshold: f32) -> Pr
         }
     }
 
-    prohibited_codons
+    Ok(prohibited_codons)
 }
 
 ///
@@ -253,7 +254,7 @@ pub fn remove_prohibited_codons(
     }
 }
 
-pub fn equal_optimiation(query: &mut UsageDataByOrganism) {
+pub fn equal_optimiation(_query: &mut UsageDataByOrganism) {
     todo!()
 }
 
@@ -473,7 +474,7 @@ mod tests {
         let fracs = get_codon_fracs_by_amino_acid(&db, &org_id).unwrap();
         let query = HashMap::from([(org_id, fracs)]);
 
-        let prohibited_codons = find_prohibited_codons(&query, 0.1);
+        let prohibited_codons = find_prohibited_codons(&query, 0.1).unwrap();
 
         let prohibted_arginines = prohibited_codons.get(&'R').unwrap();
         assert!(prohibted_arginines.contains(&Codon::CGA));
