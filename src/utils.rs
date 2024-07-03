@@ -155,14 +155,14 @@ pub fn remove_prohibited_codons(
     query: &mut UsageDataByOrganism,
     prohibited_codons: &ProhibitedCodons,
     var_threshold: f32,
-) {
+) -> Result<()> {
     let num_codons_by_aa = NumCodonsByAA::new().num_codons;
     let mut inaccessible_residues: Vec<char> = vec![];
 
     for (aa, codons) in prohibited_codons {
         let total_codons_for_aa = match num_codons_by_aa.get(aa) {
             Some(n) => n.to_owned() as usize,
-            None => panic!("Invalid amino acid: {}", aa),
+            None => anyhow::bail!("Invalid amino acid"),
         };
         // this is true if all codons for this amino acid are prohibited
         // basically, theres no way to use this amino acid right now
@@ -252,10 +252,33 @@ pub fn remove_prohibited_codons(
             }
         }
     }
+
+    Ok(())
 }
 
-pub fn equal_optimiation(_query: &mut UsageDataByOrganism) {
-    todo!()
+///
+/// This function will produce a dictionary of species weights for when the user desires equal optimization
+/// 
+/// # Arguments
+/// - query: The codon usage data
+/// 
+/// # Returns
+/// - 
+pub fn equal_optimiation(query: &UsageDataByOrganism) -> (SpeciesWeights, HashMap<i32, u8>) {
+    let mut species_expression: HashMap<i32, u8> = HashMap::new();
+    let mut species_weights: HashMap<i32, f32> = HashMap::new();
+
+    // compute what an equal weight would be, spread across all species
+    let equal_weight = 1.0 / query.len() as f32;
+
+    // set the species expression to 1
+    for species in query.keys() {
+        species_expression.insert(*species, 1);
+        species_weights.insert(*species, equal_weight);
+    }
+
+    (species_weights, species_expression)
+
 }
 
 ///
