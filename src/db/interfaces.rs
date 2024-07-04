@@ -167,8 +167,8 @@ impl Database {
 mod tests {
     use super::*;
 
-    use rstest::{fixture, rstest};
     use pretty_assertions::assert_eq;
+    use rstest::{fixture, rstest};
 
     #[fixture]
     fn org_id() -> i32 {
@@ -197,8 +197,12 @@ mod tests {
             "GGT", "GGC", "GGA", "GGG",
         ];
 
-        let codons_with_count: Vec<(&str, i32)> = codons.iter().zip(real_counts.iter()).map(|(&c, &r)| (c, r)).collect();
-        
+        let codons_with_count: Vec<(&str, i32)> = codons
+            .iter()
+            .zip(real_counts.iter())
+            .map(|(&c, &r)| (c, r))
+            .collect();
+
         for (codon, count) in codons_with_count {
             let pulled_codon_usage = usage.get(&codon.into());
             assert_eq!(pulled_codon_usage, count);

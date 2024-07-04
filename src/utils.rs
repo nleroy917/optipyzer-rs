@@ -11,7 +11,9 @@ use crate::models::{Codon, ProhibitedCodons};
 type CodonCountsByAminoAcid = HashMap<char, HashMap<Codon, i32>>;
 type CodonFracsByAminoAcid = HashMap<char, HashMap<Codon, f32>>;
 type UsageDataByOrganism = HashMap<i32, CodonFracsByAminoAcid>;
+type CodonCountsByOrganism = HashMap<i32, CodonCountsByAminoAcid>;
 type SpeciesWeights = HashMap<i32, f32>;
+type RcaXyzByOrganism = HashMap<i32, HashMap<Codon, f32>>;
 
 ///
 /// Get the codon counts for a particular organism, this is
@@ -113,7 +115,10 @@ pub fn get_codon_fracs_by_amino_acid(
 /// # Returns
 /// - `ProhibitedCodons` - The prohibited codons
 ///
-pub fn find_prohibited_codons(query: &UsageDataByOrganism, threshold: f32) -> Result<ProhibitedCodons> {
+pub fn find_prohibited_codons(
+    query: &UsageDataByOrganism,
+    threshold: f32,
+) -> Result<ProhibitedCodons> {
     // check that the threshold is valid
     if !(0.0..=1.0).contains(&threshold) {
         anyhow::bail!("Threshold must be between 0 and 1")
@@ -258,12 +263,12 @@ pub fn remove_prohibited_codons(
 
 ///
 /// This function will produce a dictionary of species weights for when the user desires equal optimization
-/// 
+///
 /// # Arguments
 /// - query: The codon usage data
-/// 
+///
 /// # Returns
-/// - 
+/// - A tuple of the species weights and species expression
 pub fn equal_optimiation(query: &UsageDataByOrganism) -> (SpeciesWeights, HashMap<i32, u8>) {
     let mut species_expression: HashMap<i32, u8> = HashMap::new();
     let mut species_weights: HashMap<i32, f32> = HashMap::new();
@@ -278,7 +283,6 @@ pub fn equal_optimiation(query: &UsageDataByOrganism) -> (SpeciesWeights, HashMa
     }
 
     (species_weights, species_expression)
-
 }
 
 ///
@@ -395,8 +399,117 @@ pub fn optimize_codon_usage() {
     todo!()
 }
 
-pub fn get_rca_xyz() {
-    todo!()
+///
+/// A function to calculate the rca_xyz value of each codon for each species where rca_xyz(xyz) = f(xyz)/f1(x)f2(y)f3(z)
+/// where f(xyz) is the normalized codon frequency, and f1(x) is the normalized frequency of base x at the first
+/// position in a codon.
+///
+/// # Arguments
+/// - codon_counts - The codon counts by organism
+///
+/// # Returns
+/// - The rca_xyz values
+pub fn get_rca_xyz(codon_counts: &CodonCountsByOrganism) -> Result<RcaXyzByOrganism> {
+    // initialize a mapping that stores sum of all codons counted for each species
+    let mut count_sum: HashMap<i32, i32> = HashMap::new();
+
+    // initialize the mapping that will store codon frequency for each species
+    let mut frequency: HashMap<i32, HashMap<Codon, f32>> = HashMap::new();
+
+    // initialize the rca_xyz mapping, with will eventually be returned
+    let mut rca_xyz: RcaXyzByOrganism = HashMap::new();
+
+    // initialize a three-layer mapping that will store information on the frequency of each base at each codon position
+    let mut base_position: HashMap<i32, HashMap<char, HashMap<i8, f32>>> = HashMap::new();
+
+    // loop through the codon counts by organism
+    for (species, usage_data) in codon_counts {
+        count_sum.insert(*species, 9);
+        for counts_by_aa in usage_data.values() {
+            for count in counts_by_aa.values() {
+                count_sum.insert(*species, count_sum[species] + count);
+            }
+        }
+    }
+
+    for (species, usage_data) in codon_counts {
+        let mut adjusted_frequency_sum = 0.0;
+
+        // init the frequency mapping for this species
+        rca_xyz.insert(*species, HashMap::new());
+        frequency.insert(*species, HashMap::new());
+
+        // init the base_position_dict for this species
+        // FROM PYTHON
+        // base_position[species] = {
+        //     "A": {1: 0, 2: 0, 3: 0},
+        //     "T": {1: 0, 2: 0, 3: 0},
+        //     "C": {1: 0, 2: 0, 3: 0},
+        //     "G": {1: 0, 2: 0, 3: 0},
+        // }
+        base_position.insert(
+            *species,
+            HashMap::from([
+                ('A', HashMap::from([(1, 0.0), (2, 0.0), (3, 0.0)])),
+                ('T', HashMap::from([(1, 0.0), (2, 0.0), (3, 0.0)])),
+                ('C', HashMap::from([(1, 0.0), (2, 0.0), (3, 0.0)])),
+                ('G', HashMap::from([(1, 0.0), (2, 0.0), (3, 0.0)])),
+            ]),
+        );
+
+        for counts in usage_data.values() {
+            for (codon, count) in counts {
+                let freq = frequency
+                    .get_mut(species)
+                    .unwrap()
+                    .insert(codon.clone(), *count as f32 / count_sum[species] as f32);
+
+                // adds to the total of all codon frequencies
+                adjusted_frequency_sum += freq.unwrap();
+
+                for (i, base) in codon.to_string().chars().enumerate() {
+                    *base_position
+                        .get_mut(species)
+                        .unwrap()
+                        .get_mut(&base)
+                        .unwrap()
+                        .get_mut(&(i as i8))
+                        .unwrap() += *count as f32 / count_sum[species] as f32;
+                }
+            }
+        }
+
+        for codon_freq in frequency.get_mut(species).unwrap().values_mut() {
+            *codon_freq /= adjusted_frequency_sum;
+        }
+    }
+
+    // coinvert base_position_dictionary from counts to frequency
+    for (species, base_values) in base_position.iter_mut() {
+        let mut base_sum = HashMap::from([(1, 0.0), (2, 0.0), (3, 0.0)]);
+        for (_base, pos_value_map) in base_values.iter_mut() {
+            for (i, val) in pos_value_map.iter_mut() {
+                *val /= count_sum[species] as f32;
+                base_sum.insert(*i, base_sum[i] + *val);
+            }
+        }
+    }
+
+    // loop through the rca_xyz dictionary
+    for (species, usage_data) in frequency {
+        for (codon, freq) in usage_data {
+            let mut pos_frequency = 1.0;
+            for (i, base) in codon.to_string().chars().enumerate() {
+                pos_frequency *= base_position[&species][&base][&(i as i8)];
+            }
+            rca_xyz
+                .get_mut(&species)
+                .unwrap()
+                .insert(codon.clone(), freq / pos_frequency);
+        }
+    }
+
+    Ok(rca_xyz)
 }
 
 ///
