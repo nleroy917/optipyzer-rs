@@ -560,8 +560,59 @@ pub fn calculate_predicted_expression(
     rca
 }
 
-pub fn get_redundantaa_rna() {
-    todo!()
+///
+/// Calculates the frequency of occurrences of each amino acid with more than one possible codon and returns in in the
+/// form of random numbers that will proportionally call for that amino acid
+///
+/// # Arguments
+/// - query: the fasta-formatted peptide sequence query
+pub fn get_redundantaa_rna(query: &str) -> HashMap<char, Vec<f32>> {
+    // initialize dictionary of the counts
+    let mut aa_frequency: HashMap<char, i32> = HashMap::from([
+        ('A', 0),
+        ('R', 0),
+        ('N', 0),
+        ('D', 0),
+        ('C', 0),
+        ('Q', 0),
+        ('E', 0),
+        ('G', 0),
+        ('H', 0),
+        ('I', 0),
+        ('L', 0),
+        ('K', 0),
+        ('F', 0),
+        ('P', 0),
+        ('S', 0),
+        ('T', 0),
+        ('Y', 0),
+        ('V', 0),
+        ('*', 1),
+    ]);
+
+    let mut raa_sum = 1;
+
+    for residue in query.chars() {
+        if let Some(count) = aa_frequency.get_mut(&residue) {
+            *count += 1;
+            raa_sum += 1;
+        }
+    }
+
+    for count in aa_frequency.values_mut() {
+        *count /= raa_sum;
+    }
+
+    let mut aa_rn: HashMap<char, Vec<f32>> = HashMap::new();
+    let mut value = 1;
+
+    for residue in aa_frequency.keys() {
+        let mut v = aa_rn.insert(*residue, vec![value as f32]).unwrap();
+        value += aa_frequency.get(residue).unwrap() * 100_000_000;
+        v.push(value as f32);
+    }
+
+    aa_rn
 }
 
 pub fn optimize_multitable_sd() {
