@@ -314,8 +314,36 @@ pub fn averaged_table() {
     todo!()
 }
 
-pub fn get_multitable_randomnumbers() {
-    todo!()
+
+///
+/// converts the codon table from codon preference to a dictionary of lists (sorted by residues and then codons) that
+/// display the bounds of random numbers which would encode for that residue
+/// 
+/// # Arguments
+/// - multi_table
+pub fn get_multitable_randomnumbers(multi_table: &HashMap<char, HashMap<Codon, i32>>) -> HashMap<char, HashMap<Codon, Vec<f32>>> {
+
+    let mut random_num_multitable: HashMap<char, HashMap<Codon, Vec<f32>>> = HashMap::new();
+
+    for (residue, preference) in multi_table {
+        
+        random_num_multitable.insert(*residue, HashMap::new());
+
+        let mut value = 1;
+
+        for (codon, count) in preference {
+            let mut v = random_num_multitable
+                .get_mut(residue)
+                .unwrap()
+                .insert(codon.clone(), vec![value as f32])
+                .unwrap();
+            
+            value += count * multi_table.get(residue).unwrap().get(codon).unwrap();
+            v.push(value as f32)
+        }
+    }
+
+    random_num_multitable
 }
 
 pub fn convert_dna_to_protein(seq: &str) -> String {
@@ -592,6 +620,7 @@ pub fn get_redundantaa_rna(query: &str) -> HashMap<char, Vec<f32>> {
 
     let mut raa_sum = 1;
 
+    // calculates frequency of redundant codons out of all redundant codons
     for residue in query.chars() {
         if let Some(count) = aa_frequency.get_mut(&residue) {
             *count += 1;
@@ -599,6 +628,7 @@ pub fn get_redundantaa_rna(query: &str) -> HashMap<char, Vec<f32>> {
         }
     }
 
+    // initializes a mapping to store the random numbers that would call that amino acid
     for count in aa_frequency.values_mut() {
         *count /= raa_sum;
     }
@@ -606,6 +636,7 @@ pub fn get_redundantaa_rna(query: &str) -> HashMap<char, Vec<f32>> {
     let mut aa_rn: HashMap<char, Vec<f32>> = HashMap::new();
     let mut value = 1;
 
+    // calculates the random number range that will call for a certain residue to be altered
     for residue in aa_frequency.keys() {
         let mut v = aa_rn.insert(*residue, vec![value as f32]).unwrap();
         value += aa_frequency.get(residue).unwrap() * 100_000_000;
