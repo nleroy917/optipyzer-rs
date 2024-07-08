@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.86"
 bio = "1.4.0"
+rand = "0.8.5"
 rusqlite = { version = "0.30.0", features = ["bundled"] }
 statrs = "0.16.0"
 
