@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::f32;
 
 use anyhow::Result;
+use rand::{Rng, SeedableRng};
+use rand::rngs::StdRng;
 
 use crate::consts::{AACodonLibrary, NumCodonsByAA};
 use crate::db::Database;
@@ -697,8 +699,45 @@ pub fn get_redundantaa_rna(query: &str) -> HashMap<char, Vec<f32>> {
     aa_rn
 }
 
-fn optimize_sequence() {
-    todo!()
+/// 
+/// Takes the current iteration of the multi-species optimized codon preference table and uses it with a weighted
+/// codon-randomization method to convert a fasta-formatted protein sequence to an optimized DNA sequence
+/// 
+/// # Arguments
+/// - random_num_table: the random number table for each residue
+/// - query: the fasta-formatted peptide sequence query
+/// - seed: the seed for the random number generator
+fn optimize_sequence(random_num_table: &HashMap<char, HashMap<Codon, Vec<f32>>>, query: &str, seed: Option<u64>) {
+    let mut rng = match seed {
+        Some(s) => StdRng::seed_from_u64(s),
+        None => StdRng::from_entropy(),
+    };
+
+    let mut optimized_query = String::new();
+
+    for residue in query.chars() {
+        let rand_num = rng.gen_range(1..100_000_001) as f32;
+        for (codon, codon_rand_values) in random_num_table.get(&residue).unwrap() {
+            let lower = codon_rand_values[0];
+            let upper = codon_rand_values[1];
+
+            if rand_num >= lower && rand_num < upper {
+                optimized_query.push_str(codon.to_string().as_str());
+                break;
+            }
+        }
+    }
+
+    // repeat for the last residue
+    let rand_num = rng.gen_range(1..100_000_001) as f32;
+    for (codon, codon_rand_values) in random_num_table.get(&query.chars().last().unwrap()).unwrap() {
+        let lower = codon_rand_values[0];
+        let upper = codon_rand_values[1];
+
+        if rand_num >= lower && rand_num < upper {
+            optimized_query.push_str(codon.to_string().as_str());
+        }
+    }
 }
 
 fn adjust_table() {
