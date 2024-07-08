@@ -269,7 +269,7 @@ pub fn remove_prohibited_codons(
 ///
 /// # Returns
 /// - A tuple of the species weights and species expression
-pub fn equal_optimiation(query: &UsageDataByOrganism) -> (SpeciesWeights, HashMap<i32, u8>) {
+pub fn equal_optimization(query: &UsageDataByOrganism) -> (SpeciesWeights, HashMap<i32, u8>) {
     let mut species_expression: HashMap<i32, u8> = HashMap::new();
     let mut species_weights: HashMap<i32, f32> = HashMap::new();
 
@@ -305,13 +305,68 @@ pub fn normalize_species_weight_requirements(weights: &mut SpeciesWeights) {
         *weight /= min_weight;
     }
 }
+///
+/// If the target expression levels of each species is not equal, calculates the weight each species' individual codon
+/// table should have in the multi-level.
+/// 
+/// # Arguments
+/// - species_expression: The target expression levels of each species
+/// 
+/// # Returns
+/// - The species weights as a float
+fn get_species_weight(species_expression: &HashMap<i32, u8>) -> HashMap<i32, f32> {
+    let mut total_expression = 0;
+    let mut species_weight: HashMap<i32, f32> = HashMap::new();
+
+    for expression in species_expression.values() {
+        total_expression += expression;
+    }
+
+    for (species, expression) in species_expression {
+        species_weight.insert(*species, (*expression / total_expression) as f32);
+    }
+
+    species_weight
+
+}
 
 ///
 /// Creates the 0th iteration multi-table, which is just an average of the individual codon preferences of species
 /// after removing prohibited codons
 ///
-pub fn averaged_table() {
-    todo!()
+/// # Arugments
+///  - query: The codon usage data
+/// - equal_species: A boolean that determines if the species should be weighted equally
+/// - species_expression: The target expression levels of each species
+pub fn averaged_table(query: &UsageDataByOrganism, equal_species: bool, species_expression: Option<&HashMap<i32, u8>>) -> (HashMap<char, HashMap<Codon, f32>>, Option<HashMap<i32, u8>>)  {
+    
+    let (species_weight, species_expression) = if equal_species {
+        let res = equal_optimization(query);
+        (res.0, Some(res.1))
+    } else {
+        (get_species_weight(species_expression.unwrap()), species_expression.cloned())
+    };
+
+    let mut multi_table: HashMap<char, HashMap<Codon, f32>> = HashMap::new();
+
+    for (species, usage_data) in query {
+        for (residue, species_preference) in usage_data {
+            let multi_table_codon_preference = multi_table.entry(*residue).or_default();
+
+            for (codon, preference) in species_preference {
+                if let Some(pref) = multi_table_codon_preference.get_mut(codon) {
+                    *pref += preference * species_weight[species];
+                } else {
+                    multi_table_codon_preference.insert(codon.clone(), preference * species_weight[species]);
+                }
+            }
+        }
+    }
+
+    
+    
+    (multi_table, species_expression)
+
 }
 
 
@@ -326,7 +381,7 @@ pub fn get_multitable_randomnumbers(multi_table: &HashMap<char, HashMap<Codon, i
     let mut random_num_multitable: HashMap<char, HashMap<Codon, Vec<f32>>> = HashMap::new();
 
     for (residue, preference) in multi_table {
-        
+
         random_num_multitable.insert(*residue, HashMap::new());
 
         let mut value = 1;
