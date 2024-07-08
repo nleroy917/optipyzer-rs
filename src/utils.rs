@@ -376,7 +376,7 @@ pub fn averaged_table(query: &UsageDataByOrganism, equal_species: bool, species_
 /// 
 /// # Arguments
 /// - multi_table
-pub fn get_multitable_randomnumbers(multi_table: &HashMap<char, HashMap<Codon, i32>>) -> HashMap<char, HashMap<Codon, Vec<f32>>> {
+pub fn get_multitable_randomnumbers(multi_table: &HashMap<char, HashMap<Codon, f32>>) -> HashMap<char, HashMap<Codon, Vec<f32>>> {
 
     let mut random_num_multitable: HashMap<char, HashMap<Codon, Vec<f32>>> = HashMap::new();
 
@@ -384,17 +384,17 @@ pub fn get_multitable_randomnumbers(multi_table: &HashMap<char, HashMap<Codon, i
 
         random_num_multitable.insert(*residue, HashMap::new());
 
-        let mut value = 1;
+        let mut value = 1.0;
 
         for (codon, count) in preference {
             let mut v = random_num_multitable
                 .get_mut(residue)
                 .unwrap()
-                .insert(codon.clone(), vec![value as f32])
+                .insert(codon.clone(), vec![value])
                 .unwrap();
             
             value += count * multi_table.get(residue).unwrap().get(codon).unwrap();
-            v.push(value as f32)
+            v.push(value)
         }
     }
 
@@ -476,10 +476,6 @@ pub fn convert_dna_to_protein(seq: &str) -> String {
     }
 
     protein
-}
-
-pub fn optimize_codon_usage() {
-    todo!()
 }
 
 ///
@@ -701,8 +697,47 @@ pub fn get_redundantaa_rna(query: &str) -> HashMap<char, Vec<f32>> {
     aa_rn
 }
 
-pub fn optimize_multitable_sd() {
+fn optimize_sequence() {
     todo!()
+}
+
+fn adjust_table() {
+    todo!()
+}
+
+///
+/// iterates upon the multi_table while optimizing the query to select the best-optimized DNA sequence using a sum of
+/// squares of differences based method
+/// 
+/// # Arguments
+/// - multi_table: The adjusted codon preferences for the species
+/// - query: the fasta-formated peptide sequence query
+/// - query_table: the codon preferences for the species
+/// - raca_xyz: the rca_xyz values for each codon for each species
+/// - species_expression: the expression weighting for each species
+/// - et: a percentage (expressed as a decimal) and any species which has a difference in expression greater than
+///    this percent / 1 less than the number of species of the target expression is adjusted
+/// - iterations - the number of iterations to run
+/// - seed - the seed for the random number generator
+pub fn optimize_multitable_sd(
+    multi_table: &HashMap<char, HashMap<Codon, f32>>,
+    query: &str,
+    query_table: &UsageDataByOrganism,
+    rca_xyz: &RcaXyzByOrganism,
+    species_expression: &HashMap<i32, u8>,
+    et: f32,
+    iterations: i32,
+    seed: u64,
+) {
+    let mut total_its = 0;
+    let rn = get_multitable_randomnumbers(multi_table);
+    let aa_rn = get_redundantaa_rna(query);
+
+    while total_its < iterations {
+        total_its += 1;
+        let mut square_diff = 0.0;
+        // optimized_seq = optimi
+    }
 }
 
 pub fn optimize_multitable_ad() {
