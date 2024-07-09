@@ -163,7 +163,7 @@ impl From<&str> for Codon {
 
 impl Display for Codon {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self{
+        match self {
             Codon::AAA => write!(f, "AAA"),
             Codon::AAC => write!(f, "AAC"),
             Codon::AAG => write!(f, "AAG"),
@@ -230,7 +230,6 @@ impl Display for Codon {
             Codon::TTT => write!(f, "TTT"),
         }
     }
-
 }
 
 #[derive(Debug)]
@@ -387,5 +386,15 @@ impl IntoIterator for CodonUsage {
 
     fn into_iter(self) -> Self::IntoIter {
         self.codon_usage.into_iter()
+    }
+}
+
+impl CodonUsage {
+    pub fn into_fracs(self) -> HashMap<Codon, f32> {
+        let total: i32 = self.codon_usage.values().sum();
+        self.codon_usage
+            .into_iter()
+            .map(|(codon, count)| (codon, count as f32 / total as f32))
+            .collect()
     }
 }

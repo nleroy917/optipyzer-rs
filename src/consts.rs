@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::models::Codon;
 
-pub const DEFAULT_THRESHOLD: f32 = 0.1;
+pub const DEFAULT_PROHIBITED_CODON_THRESHOLD: f32 = 0.1;
 pub const DEFAULT_ITERATIONS: i32 = 1000;
 pub const VALID_AMINO_ACIDS: &str = "ACDEFGHIKLMNPQRSTVWY*";
 pub const VALID_NUCLEOTIDES: &str = "ACGT";
