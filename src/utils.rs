@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 
 use crate::consts::DEFAULT_PROHIBITED_CODON_THRESHOLD;
-use crate::models::Codon;
+use crate::models::{Codon, CodonUsage};
 
 // custom types for readability
 type SpeciesWeights = HashMap<i32, f32>;
@@ -112,6 +112,15 @@ pub fn average_codon_usage(
     }
 
     Ok(average_codon_usage)
+}
+
+pub fn calculate_rcb_xyz(codon: &str, codon_counts: &CodonUsage) -> f32 {
+
+    let codon: Codon = codon.into();
+    let f_xyz = codon_counts.get(&codon).unwrap_or(0);
+
+    0.0
+    
 }
 
 #[cfg(test)]

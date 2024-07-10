@@ -375,8 +375,8 @@ impl CodonUsage {
         CodonUsage { codon_usage }
     }
 
-    pub fn get(&self, codon: &Codon) -> i32 {
-        self.codon_usage.get(codon).unwrap().to_owned()
+    pub fn get(&self, codon: &Codon) -> Option<i32> {
+        self.codon_usage.get(codon).copied()
     }
 }
 
