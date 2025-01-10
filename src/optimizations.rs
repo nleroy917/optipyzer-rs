@@ -5,10 +5,10 @@ use anyhow::Result;
 use crate::models::Codon;
 
 // type names for readability
-type SpeciesWeights = HashMap<i32, f64>;
-type CodonUsageAsFracs = HashMap<Codon, f64>;
-type CodonUsageByResidue = HashMap<char, CodonUsageAsFracs>;
-type CodonUsageByResidueByOrganism = HashMap<i32, HashMap<char, CodonUsageAsFracs>>;
+pub type SpeciesWeights = HashMap<i32, f64>;
+pub type CodonUsageAsFracs = HashMap<Codon, f64>;
+pub type CodonUsageByResidue = HashMap<char, CodonUsageAsFracs>;
+pub type CodonUsageByResidueByOrganism = HashMap<i32, HashMap<char, CodonUsageAsFracs>>;
 
 pub struct OptimizationOptions {
     pub max_iterations: i32,
