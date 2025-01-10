@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 
-use crate::models::Codon;
+use crate::{models::Codon, utils::remove_prohibited_codons};
 
 // type names for readability
 pub type SpeciesWeights = HashMap<i32, f64>;
@@ -14,7 +14,7 @@ pub struct OptimizationOptions {
     pub max_iterations: i32,
     pub seed: i32,
     pub prohibited_preference_threshold: f64,
-    pub min_error: f64
+    pub min_error: f64,
 }
 
 impl Default for OptimizationOptions {
@@ -23,7 +23,7 @@ impl Default for OptimizationOptions {
             max_iterations: 1_000,
             seed: 42,
             prohibited_preference_threshold: 0.1,
-            min_error: 0.01
+            min_error: 0.01,
         }
     }
 }
@@ -53,12 +53,17 @@ pub fn optimize_sequence(
     weights: f64,
     optimization_options: &OptimizationOptions,
 ) -> Result<OptimizationResult> {
-
     let mut optimized_sequence = String::new();
 
     // remove prohibited codons
+    let codon_usage = remove_prohibited_codons(
+        codon_usage,
+        optimization_options.prohibited_preference_threshold,
+    )?;
 
     // compute weighted average codon table
+
+    // precompute rca_xyz
 
     // stochastic codon selection + RCA validation + iteration
 
