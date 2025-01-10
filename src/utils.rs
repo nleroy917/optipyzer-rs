@@ -5,20 +5,22 @@ use anyhow::Result;
 use crate::models::Codon;
 use crate::optimizations::{CodonUsageByResidueByOrganism, SpeciesWeights};
 
-/// 
+///
 /// This function does three things in turn:
 /// 1. Identify "prohibited codons" -- codons that fall below a usage threshold and should not be used in the sequence.
 /// 2. Remove these codons from the usage data
 /// 3. Recalculate usage with removed codons
-/// 
+///
 /// # Arguments
 /// - usage_data: Codon usage data by species
 /// - prohibited_threshold: Threshold to use to be considered "prohibited"
-/// 
+///
 /// # Returns
 /// - the new, recomputed table
-pub fn remove_prohibited_codons(usage_data: &CodonUsageByResidueByOrganism, prohibited_threshold: f64) -> Result<CodonUsageByResidueByOrganism> {
-
+pub fn remove_prohibited_codons(
+    usage_data: &CodonUsageByResidueByOrganism,
+    prohibited_threshold: f64,
+) -> Result<CodonUsageByResidueByOrganism> {
     let mut corrected_usage_data: CodonUsageByResidueByOrganism = HashMap::new();
     let mut renormalized_usage_data: CodonUsageByResidueByOrganism = HashMap::new();
     let mut prohibited_codons: HashMap<char, Vec<Codon>> = HashMap::new();
@@ -44,7 +46,9 @@ pub fn remove_prohibited_codons(usage_data: &CodonUsageByResidueByOrganism, proh
         for (aa, preferences) in org_usage_data {
             let mut corrected_preferences: HashMap<Codon, f64> = HashMap::new();
             for (codon, pref) in preferences {
-                if !prohibited_codons.contains_key(aa) || !prohibited_codons.get(aa).unwrap().contains(codon) {
+                if !prohibited_codons.contains_key(aa)
+                    || !prohibited_codons.get(aa).unwrap().contains(codon)
+                {
                     corrected_preferences.insert(codon.clone(), *pref);
                 }
             }
@@ -69,8 +73,6 @@ pub fn remove_prohibited_codons(usage_data: &CodonUsageByResidueByOrganism, proh
 
     Ok(renormalized_usage_data)
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -140,47 +142,55 @@ mod tests {
 
     #[rstest]
     fn test_remove_prohibited_codons(org_usage1: HashMap<char, HashMap<Codon, f64>>) {
-
         let usage_data: CodonUsageByResidueByOrganism = HashMap::from([(1, org_usage1)]);
 
         let prohibited_threshold = 0.2;
-        let corrected_usage_data = remove_prohibited_codons(&usage_data, prohibited_threshold).unwrap();
+        let corrected_usage_data =
+            remove_prohibited_codons(&usage_data, prohibited_threshold).unwrap();
 
-        let expected_usage_data: CodonUsageByResidueByOrganism = HashMap::from([
-            (
-                1,
-                HashMap::from([
-                    (
-                        'A',
-                        HashMap::from([
-                            // (Codon::GCT, 0.1), // --> gets removed!
-                            (Codon::GCC, 0.22222222),
-                            (Codon::GCA, 0.33333333),
-                            (Codon::GCG, 0.44444444),
-                        ]),
-                    ),
-                    (
-                        'R',
-                        HashMap::from([
-                            // (Codon::CGT, 0.1), // --> gets removed!
-                            (Codon::CGC, 0.22222222),
-                            (Codon::CGA, 0.33333333),
-                            (Codon::CGG, 0.44444444),
-                        ]),
-                    ),
-                ])
-            ),
-        ]);
+        let expected_usage_data: CodonUsageByResidueByOrganism = HashMap::from([(
+            1,
+            HashMap::from([
+                (
+                    'A',
+                    HashMap::from([
+                        // (Codon::GCT, 0.1), // --> gets removed!
+                        (Codon::GCC, 0.22222222),
+                        (Codon::GCA, 0.33333333),
+                        (Codon::GCG, 0.44444444),
+                    ]),
+                ),
+                (
+                    'R',
+                    HashMap::from([
+                        // (Codon::CGT, 0.1), // --> gets removed!
+                        (Codon::CGC, 0.22222222),
+                        (Codon::CGA, 0.33333333),
+                        (Codon::CGG, 0.44444444),
+                    ]),
+                ),
+            ]),
+        )]);
 
         for (org_id, org_usage_data) in corrected_usage_data {
             for (aa, preferences) in org_usage_data {
                 for (codon, pref) in preferences {
-                    assert_eq!(approx_equal(pref, *expected_usage_data.get(&org_id).unwrap().get(&aa).unwrap().get(&codon).unwrap(), EPSILON), true);
+                    assert_eq!(
+                        approx_equal(
+                            pref,
+                            *expected_usage_data
+                                .get(&org_id)
+                                .unwrap()
+                                .get(&aa)
+                                .unwrap()
+                                .get(&codon)
+                                .unwrap(),
+                            EPSILON
+                        ),
+                        true
+                    );
                 }
             }
         }
-
-        
     }
-
 }
