@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use anyhow::Result;
 use rusqlite::Connection;
 
 use crate::models::{CodonUsage, Organism};
@@ -18,7 +19,7 @@ impl Database {
     /// # Returns
     /// - `Database` - The database connection
     ///
-    pub fn new<P>(db: P) -> Result<Database, Box<dyn std::error::Error>>
+    pub fn new<P>(db: P) -> Result<Database>
     where
         P: AsRef<Path>,
     {
@@ -35,10 +36,7 @@ impl Database {
     ///
     /// # Returns
     /// - `CodonUsage` - The codon usage for the organism and amino acid
-    pub fn get_codon_usage_for_organism(
-        &self,
-        org_id: &i32,
-    ) -> Result<CodonUsage, Box<dyn std::error::Error>> {
+    pub fn get_codon_usage_for_organism(&self, org_id: &i32) -> Result<CodonUsage> {
         let mut stmt = self
             .conn
             .prepare("SELECT * FROM codon_usage WHERE org_id = ?")?;
@@ -118,12 +116,12 @@ impl Database {
             )),
             None => {
                 let msg = format!("No organism found at org_id: {org_id}");
-                Err(msg.into())
+                Err(anyhow::anyhow!(msg))
             }
         }
     }
 
-    /// Get the organism for a particular organism ID
+    /// Get the organism information for a particular organism ID
     ///
     /// # Arguments
     /// - `org_id` - The organism ID
@@ -131,7 +129,7 @@ impl Database {
     /// # Returns
     /// - `Organism` - The organism
     ///
-    pub fn get_organism(&self, org_id: i32) -> Result<Organism, Box<dyn std::error::Error>> {
+    pub fn get_organism(&self, org_id: i32) -> Result<Organism> {
         let mut stmt = self
             .conn
             .prepare("SELECT * FROM organisms WHERE org_id = ?")?;
@@ -157,7 +155,7 @@ impl Database {
             }),
             None => {
                 let msg = format!("No organism found at org_id: {org_id}");
-                Err(msg.into())
+                Err(anyhow::anyhow!(msg))
             }
         }
     }
