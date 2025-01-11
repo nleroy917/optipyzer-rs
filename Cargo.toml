@@ -1,0 +1,12 @@
+[workspace]
+members = [ "multimizer-cli",
+    "multimizer-core",
+    "multimizer-py",
+    "multimizer-wasm"
+]
+
+# [workspace.package]
+# name = "multimizer-workspace"
+# version = "0.1.0"
+# edition = "2021"
+# publish = false
