@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 pub type ProhibitedCodons = HashMap<char, Vec<Codon>>;
 
@@ -161,76 +161,74 @@ impl From<&str> for Codon {
     }
 }
 
-impl Codon {
-    pub fn to_string(&self) -> String {
-        let v = match self {
-            Codon::AAA => "AAA",
-            Codon::AAC => "AAC",
-            Codon::AAG => "AAG",
-            Codon::AAT => "AAT",
-            Codon::ACA => "ACA",
-            Codon::ACC => "ACC",
-            Codon::ACG => "ACG",
-            Codon::ACT => "ACT",
-            Codon::AGA => "AGA",
-            Codon::AGC => "AGC",
-            Codon::AGG => "AGG",
-            Codon::AGT => "AGT",
-            Codon::ATA => "ATA",
-            Codon::ATC => "ATC",
-            Codon::ATG => "ATG",
-            Codon::ATT => "ATT",
-            Codon::CAA => "CAA",
-            Codon::CAC => "CAC",
-            Codon::CAG => "CAG",
-            Codon::CAT => "CAT",
-            Codon::CCA => "CCA",
-            Codon::CCC => "CCC",
-            Codon::CCG => "CCG",
-            Codon::CCT => "CCT",
-            Codon::CGA => "CGA",
-            Codon::CGC => "CGC",
-            Codon::CGG => "CGG",
-            Codon::CGT => "CGT",
-            Codon::CTA => "CTA",
-            Codon::CTC => "CTC",
-            Codon::CTG => "CTG",
-            Codon::CTT => "CTT",
-            Codon::GAA => "GAA",
-            Codon::GAC => "GAC",
-            Codon::GAG => "GAG",
-            Codon::GAT => "GAT",
-            Codon::GCA => "GCA",
-            Codon::GCC => "GCC",
-            Codon::GCG => "GCG",
-            Codon::GCT => "GCT",
-            Codon::GGA => "GGA",
-            Codon::GGC => "GGC",
-            Codon::GGG => "GGG",
-            Codon::GGT => "GGT",
-            Codon::GTA => "GTA",
-            Codon::GTC => "GTC",
-            Codon::GTG => "GTG",
-            Codon::GTT => "GTT",
-            Codon::TAA => "TAA",
-            Codon::TAC => "TAC",
-            Codon::TAG => "TAG",
-            Codon::TAT => "TAT",
-            Codon::TCA => "TCA",
-            Codon::TCC => "TCC",
-            Codon::TCG => "TCG",
-            Codon::TCT => "TCT",
-            Codon::TGA => "TGA",
-            Codon::TGC => "TGC",
-            Codon::TGG => "TGG",
-            Codon::TGT => "TGT",
-            Codon::TTA => "TTA",
-            Codon::TTC => "TTC",
-            Codon::TTG => "TTG",
-            Codon::TTT => "TTT",
-        };
-
-        v.to_string()
+impl Display for Codon {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Codon::AAA => write!(f, "AAA"),
+            Codon::AAC => write!(f, "AAC"),
+            Codon::AAG => write!(f, "AAG"),
+            Codon::AAT => write!(f, "AAT"),
+            Codon::ACA => write!(f, "ACA"),
+            Codon::ACC => write!(f, "ACC"),
+            Codon::ACG => write!(f, "ACG"),
+            Codon::ACT => write!(f, "ACT"),
+            Codon::AGA => write!(f, "AGA"),
+            Codon::AGC => write!(f, "AGC"),
+            Codon::AGG => write!(f, "AGG"),
+            Codon::AGT => write!(f, "AGT"),
+            Codon::ATA => write!(f, "ATA"),
+            Codon::ATC => write!(f, "ATC"),
+            Codon::ATG => write!(f, "ATG"),
+            Codon::ATT => write!(f, "ATT"),
+            Codon::CAA => write!(f, "CAA"),
+            Codon::CAC => write!(f, "CAC"),
+            Codon::CAG => write!(f, "CAG"),
+            Codon::CAT => write!(f, "CAT"),
+            Codon::CCA => write!(f, "CCA"),
+            Codon::CCC => write!(f, "CCC"),
+            Codon::CCG => write!(f, "CCG"),
+            Codon::CCT => write!(f, "CCT"),
+            Codon::CGA => write!(f, "CGA"),
+            Codon::CGC => write!(f, "CGC"),
+            Codon::CGG => write!(f, "CGG"),
+            Codon::CGT => write!(f, "CGT"),
+            Codon::CTA => write!(f, "CTA"),
+            Codon::CTC => write!(f, "CTC"),
+            Codon::CTG => write!(f, "CTG"),
+            Codon::CTT => write!(f, "CTT"),
+            Codon::GAA => write!(f, "GAA"),
+            Codon::GAC => write!(f, "GAC"),
+            Codon::GAG => write!(f, "GAG"),
+            Codon::GAT => write!(f, "GAT"),
+            Codon::GCA => write!(f, "GCA"),
+            Codon::GCC => write!(f, "GCC"),
+            Codon::GCG => write!(f, "GCG"),
+            Codon::GCT => write!(f, "GCT"),
+            Codon::GGA => write!(f, "GGA"),
+            Codon::GGC => write!(f, "GGC"),
+            Codon::GGG => write!(f, "GGG"),
+            Codon::GGT => write!(f, "GGT"),
+            Codon::GTA => write!(f, "GTA"),
+            Codon::GTC => write!(f, "GTC"),
+            Codon::GTG => write!(f, "GTG"),
+            Codon::GTT => write!(f, "GTT"),
+            Codon::TAA => write!(f, "TAA"),
+            Codon::TAC => write!(f, "TAC"),
+            Codon::TAG => write!(f, "TAG"),
+            Codon::TAT => write!(f, "TAT"),
+            Codon::TCA => write!(f, "TCA"),
+            Codon::TCC => write!(f, "TCC"),
+            Codon::TCG => write!(f, "TCG"),
+            Codon::TCT => write!(f, "TCT"),
+            Codon::TGA => write!(f, "TGA"),
+            Codon::TGC => write!(f, "TGC"),
+            Codon::TGG => write!(f, "TGG"),
+            Codon::TGT => write!(f, "TGT"),
+            Codon::TTA => write!(f, "TTA"),
+            Codon::TTC => write!(f, "TTC"),
+            Codon::TTG => write!(f, "TTG"),
+            Codon::TTT => write!(f, "TTT"),
+        }
     }
 }
 
@@ -377,8 +375,8 @@ impl CodonUsage {
         CodonUsage { codon_usage }
     }
 
-    pub fn get(&self, codon: &Codon) -> i32 {
-        self.codon_usage.get(codon).unwrap().to_owned()
+    pub fn get(&self, codon: &Codon) -> Option<i32> {
+        self.codon_usage.get(codon).copied()
     }
 }
 
@@ -388,5 +386,15 @@ impl IntoIterator for CodonUsage {
 
     fn into_iter(self) -> Self::IntoIter {
         self.codon_usage.into_iter()
+    }
+}
+
+impl CodonUsage {
+    pub fn into_fracs(self) -> HashMap<Codon, f32> {
+        let total: i32 = self.codon_usage.values().sum();
+        self.codon_usage
+            .into_iter()
+            .map(|(codon, count)| (codon, count as f32 / total as f32))
+            .collect()
     }
 }
