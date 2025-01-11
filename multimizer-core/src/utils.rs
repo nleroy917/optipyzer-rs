@@ -17,12 +17,11 @@ use crate::optimizations::{CodonUsageByResidue, CodonUsageByResidueByOrganism, S
 ///
 /// # Returns
 /// - the new, recomputed table
-/// 
+///
 pub fn remove_prohibited_codons(
     usage_data: &CodonUsageByResidueByOrganism,
     prohibited_threshold: f64,
 ) -> Result<CodonUsageByResidueByOrganism> {
-
     let mut corrected_usage_data: CodonUsageByResidueByOrganism = HashMap::new();
     let mut renormalized_usage_data: CodonUsageByResidueByOrganism = HashMap::new();
     let mut prohibited_codons: HashMap<char, Vec<Codon>> = HashMap::new();
@@ -72,7 +71,6 @@ pub fn remove_prohibited_codons(
         }
     }
 
-
     // step 3 -- remove prohibited codons
     for (org_id, org_usage_data) in usage_data {
         let mut corrected_org_usage_data: HashMap<char, HashMap<Codon, f64>> = HashMap::new();
@@ -109,16 +107,18 @@ pub fn remove_prohibited_codons(
 
 ///
 /// This function builds an averaged codon usage table based on the provided usage data and species weights.
-/// 
+///
 /// # Arguments
 /// - usage_data: Codon usage data by species
 /// - weights: Weights to use for averaging
-/// 
+///
 /// # Returns
 /// - the averaged table
-/// 
-pub fn build_averaged_table(usage_data: &CodonUsageByResidueByOrganism, weights: &SpeciesWeights) -> CodonUsageByResidue {
-    
+///
+pub fn build_averaged_table(
+    usage_data: &CodonUsageByResidueByOrganism,
+    weights: &SpeciesWeights,
+) -> CodonUsageByResidue {
     let mut averaged_table: CodonUsageByResidue = HashMap::new();
 
     for (org_id, org_usage_data) in usage_data {
@@ -126,10 +126,14 @@ pub fn build_averaged_table(usage_data: &CodonUsageByResidueByOrganism, weights:
             for (codon, pref) in preferences {
                 if averaged_table.contains_key(aa) {
                     if averaged_table.get(aa).unwrap().contains_key(codon) {
-                        let current_pref = averaged_table.get_mut(aa).unwrap().get_mut(codon).unwrap();
+                        let current_pref =
+                            averaged_table.get_mut(aa).unwrap().get_mut(codon).unwrap();
                         *current_pref += pref * weights.get(org_id).unwrap();
                     } else {
-                        averaged_table.get_mut(aa).unwrap().insert(codon.clone(), pref * weights.get(org_id).unwrap());
+                        averaged_table
+                            .get_mut(aa)
+                            .unwrap()
+                            .insert(codon.clone(), pref * weights.get(org_id).unwrap());
                     }
                 } else {
                     let mut new_preferences: HashMap<Codon, f64> = HashMap::new();
@@ -264,11 +268,13 @@ mod tests {
     }
 
     #[rstest]
-    fn test_average_codon_table(org_usage1: HashMap<char, HashMap<Codon, f64>>, org_usage2: HashMap<char, HashMap<Codon, f64>>, org_weights: SpeciesWeights) {
-        let usage_data: CodonUsageByResidueByOrganism = HashMap::from([
-            (1, org_usage1),
-            (2, org_usage2),
-        ]);
+    fn test_average_codon_table(
+        org_usage1: HashMap<char, HashMap<Codon, f64>>,
+        org_usage2: HashMap<char, HashMap<Codon, f64>>,
+        org_weights: SpeciesWeights,
+    ) {
+        let usage_data: CodonUsageByResidueByOrganism =
+            HashMap::from([(1, org_usage1), (2, org_usage2)]);
 
         let averaged_table = build_averaged_table(&usage_data, &org_weights);
 
@@ -298,7 +304,11 @@ mod tests {
                 assert_eq!(
                     approx_equal(
                         pref,
-                        *expected_averaged_table.get(&aa).unwrap().get(&codon).unwrap(),
+                        *expected_averaged_table
+                            .get(&aa)
+                            .unwrap()
+                            .get(&codon)
+                            .unwrap(),
                         EPSILON
                     ),
                     true
@@ -306,5 +316,4 @@ mod tests {
             }
         }
     }
-
 }

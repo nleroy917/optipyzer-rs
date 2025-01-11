@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./multimizer-core/Cargo.toml",
+        "./multimizer-wasm/Cargo.toml",
+    ]
+}
