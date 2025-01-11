@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::io::Read;
 
 use anyhow::Result;
+use bio::io::fasta;
 
 use crate::models::Codon;
 use crate::optimizations::{CodonUsageByResidue, CodonUsageByResidueByOrganism, SpeciesWeights};
@@ -145,6 +147,32 @@ pub fn build_averaged_table(
     }
 
     averaged_table
+}
+
+///
+/// Read in a pasted user input of FASTA sequences and parse them into a HashMap.
+/// The key is the sequence name and the value is the sequence itself.
+/// 
+/// # Arguments
+/// - input: The user input string
+/// 
+/// # Returns
+/// - the parsed sequences
+/// 
+pub fn parse_fasta_sequences_from_string(input: &str) -> Result<HashMap<String, String>> {
+    let fa_reader = fasta::Reader::new(input.as_bytes());
+    let mut sequences: HashMap<String, String> = HashMap::new();
+
+    for record in fa_reader.records() {
+        let record = record?;
+        let name = record.id().to_string();
+        let mut buf = String::new();
+
+        record.seq().read_to_string(&mut buf)?;
+        sequences.insert(name, buf);
+    }
+
+    Ok(sequences)
 }
 
 #[cfg(test)]
