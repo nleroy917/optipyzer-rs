@@ -1,14 +1,15 @@
 use pyo3::prelude::*;
 
-/// Formats the sum of two numbers as string.
-#[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
+use multimizer::optimizations::optimize_seq_test;
+
+#[pyfunction(name="optimize")]
+fn optimize_py(query: &str) -> PyResult<String> {
+    Ok(optimize_seq_test(query))
 }
 
-/// A Python module implemented in Rust.
 #[pymodule]
-fn multimizer_py(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+#[pyo3(name = "multimizer")]
+fn multimizer_py(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(optimize_py, m)?)?;
     Ok(())
 }
