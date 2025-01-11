@@ -19,7 +19,7 @@ export default function Home() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Paste you sequence:</CardTitle>
+            <CardTitle>Paste you sequence(s):</CardTitle>
             <CardDescription>Paste your sequence here to optimize it for the selected species.</CardDescription>
           </CardHeader>
           <CardContent>
