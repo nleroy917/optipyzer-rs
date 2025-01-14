@@ -6,6 +6,9 @@ pub struct Cli {
     #[arg(short, long)]
     pub verbose: bool,
 
+    #[arg(short, long, default_value_t=false)]
+    pub debug: bool,
+
     #[command(subcommand)]
     cmd: Option<Commands>,
 }
@@ -15,6 +18,7 @@ enum Commands {
     /// Optimize a query sequence
     Optimize {
         #[arg(required=true, value_name="QUERY")]
+        /// The query sequence to optimize
         query: String,
     },
 

@@ -4,6 +4,7 @@ import './globals.css';
 
 import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { CodonDatabaseProvider } from '@/contexts/codon-database-context';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,10 +32,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} max-w-7xl mx-auto min-h-svh bg-background font-sans antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
-          <footer>
-            <ThemeToggle />
-          </footer>
+          <CodonDatabaseProvider>
+            {children}
+            <footer>
+              <ThemeToggle />
+            </footer>
+          </CodonDatabaseProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,5 +1,6 @@
 [workspace]
-members = [ "multimizer-cli",
+members = [
+    "multimizer-cli",
     "multimizer-core",
     "multimizer-py",
     "multimizer-wasm"
