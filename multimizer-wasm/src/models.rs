@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use tsify::Tsify;
 use serde::{Deserialize, Serialize};
+use tsify::Tsify;
 
 #[derive(Tsify, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]

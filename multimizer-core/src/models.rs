@@ -389,6 +389,15 @@ impl IntoIterator for CodonUsage {
     }
 }
 
+impl Display for CodonUsage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for (codon, count) in &self.codon_usage {
+            writeln!(f, "{}: {}", codon, count)?;
+        }
+        Ok(())
+    }
+}
+
 impl CodonUsage {
     pub fn into_fracs(self) -> HashMap<Codon, f32> {
         let total: i32 = self.codon_usage.values().sum();

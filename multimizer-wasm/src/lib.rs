@@ -18,15 +18,13 @@ pub fn greet() {
     alert("Hello, multimizer-web!");
 }
 
-#[wasm_bindgen(js_name="parseFastaSequencesFromString")]
+#[wasm_bindgen(js_name = "parseFastaSequencesFromString")]
 pub fn parse_fasta_sequences_from_string_js(input: &str) -> Result<JsValue, JsValue> {
     match parse_fasta_sequences_from_string(input) {
         Ok(seqs) => {
-            let parsed_seqs = ParsedFastaSequences {
-                result: seqs
-            };
+            let parsed_seqs = ParsedFastaSequences { result: seqs };
             Ok(serde_wasm_bindgen::to_value(&parsed_seqs)?)
-        },
+        }
         Err(err) => Err(JsValue::from(err.to_string())),
     }
 }

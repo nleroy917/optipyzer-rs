@@ -74,9 +74,7 @@ pub fn optimize_sequence(
     })
 }
 
-pub fn optimize_seq_test(
-    query: &str
-) -> String {
+pub fn optimize_seq_test(query: &str) -> String {
     String::from(query)
 }
 

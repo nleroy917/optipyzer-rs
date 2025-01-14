@@ -17,5 +17,7 @@ pub fn get_database_file_path() -> Result<PathBuf> {
         }
     }
 
-    anyhow::bail!("Could not find the database file! Have you set the CODON_DB_PATH environment variable?");
+    anyhow::bail!(
+        "Could not find the database file! Have you set the CODON_DB_PATH environment variable?"
+    );
 }

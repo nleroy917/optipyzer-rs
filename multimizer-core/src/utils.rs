@@ -152,13 +152,13 @@ pub fn build_averaged_table(
 ///
 /// Read in a pasted user input of FASTA sequences and parse them into a HashMap.
 /// The key is the sequence name and the value is the sequence itself.
-/// 
+///
 /// # Arguments
 /// - input: The user input string
-/// 
+///
 /// # Returns
 /// - the parsed sequences
-/// 
+///
 pub fn parse_fasta_sequences_from_string(input: &str) -> Result<HashMap<String, String>> {
     let fa_reader = fasta::Reader::new(input.as_bytes());
     let mut sequences: HashMap<String, String> = HashMap::new();

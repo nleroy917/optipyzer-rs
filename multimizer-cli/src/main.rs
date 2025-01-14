@@ -21,7 +21,9 @@ fn main() {
                 Some(q) => q,
                 None => {
                     let mut input = String::new();
-                    io::stdin().read_line(&mut input).expect("Failed to read from stdin");
+                    io::stdin()
+                        .read_line(&mut input)
+                        .expect("Failed to read from stdin");
                     input.trim().to_string()
                 }
             };
@@ -31,8 +33,6 @@ fn main() {
             let codon_usage = pull_codon_usage_for_org(id).expect("Failed to pull codon usage");
             println!("{}", codon_usage);
         }
-        None => unreachable!()
+        None => unreachable!(),
     }
-
-    
 }

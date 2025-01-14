@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 
 use multimizer::optimizations::optimize_seq_test;
 
-#[pyfunction(name="optimize")]
+#[pyfunction(name = "optimize")]
 fn optimize_py(query: &str) -> PyResult<String> {
     Ok(optimize_seq_test(query))
 }
