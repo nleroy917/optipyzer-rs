@@ -10,16 +10,19 @@ pub struct Cli {
     pub debug: bool,
 
     #[command(subcommand)]
-    cmd: Option<Commands>,
+    pub cmd: Option<Commands>,
+
 }
 
+
 #[derive(Subcommand)]
-enum Commands {
+#[command(arg_required_else_help(true))]
+pub enum Commands {
     /// Optimize a query sequence
     Optimize {
-        #[arg(required=true, value_name="QUERY")]
+        #[arg(required=false, value_name="QUERY")]
         /// The query sequence to optimize
-        query: String,
+        query: Option<String>,
     },
 
     /// Pull usage data from the database
