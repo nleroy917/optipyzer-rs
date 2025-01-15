@@ -5,7 +5,7 @@ use anyhow::Result;
 use crate::{
     consts::SequenceType,
     models::Codon,
-    utils::{detect_sequence_type, select_random_codon_from_usage_table, translate_dna_sequence},
+    utils::{compute_rca, compute_rca_xyz_table, detect_sequence_type, select_random_codon_from_usage_table, translate_dna_sequence},
 };
 
 // type names for readability
@@ -36,6 +36,7 @@ pub struct OptimizationResult {
     pub seq: String,
     pub iterations: i32,
     pub translated_seq: String,
+    pub rca_value: f64
 }
 
 ///
@@ -54,9 +55,11 @@ pub fn optimize_for_single_organism(
     query: &str,
     codon_usage: &CodonUsageByResidue,
     options: &OptimizationOptions,
-) -> Result<()> {
+) -> Result<OptimizationResult> {
+    
     // detect sequence type, translate if necessary
     let seq_type = detect_sequence_type(query)?;
+    let rca_xyz_table = compute_rca_xyz_table(codon_usage);
     let query = match seq_type {
         SequenceType::Dna => {
             // otherwise translate the sequence
@@ -67,14 +70,22 @@ pub fn optimize_for_single_organism(
     };
 
     let mut optimized_sequence = String::new();
-
+    
     for residue in query.chars() {
         let random_codon =
             select_random_codon_from_usage_table(residue, codon_usage, Some(options.seed))?;
         optimized_sequence.push_str(&random_codon.to_string());
     }
 
-    Ok(())
+    let rca = compute_rca(&optimized_sequence, &rca_xyz_table)?;    
+    let translated_seq = translate_dna_sequence(&optimized_sequence)?;
+
+    Ok(OptimizationResult {
+        seq: optimized_sequence,
+        translated_seq,
+        iterations: 1,
+        rca_value: rca
+    })
 }
 
 ///

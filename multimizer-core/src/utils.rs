@@ -295,7 +295,7 @@ pub fn select_random_codon_from_usage_table(
 /// # Returns
 /// - the computed rca table
 /// 
-pub fn compute_rca_xyz_table(codon_counts: &CodonUsageByResidue) -> RCAxyzTable {
+pub fn compute_rca_xyz_table(codon_usage: &CodonUsageByResidue) -> RCAxyzTable {
 
     // 1) Compute base frequency by position
     //    base_position[pos][base], with pos in {0,1,2} for codon positions
@@ -307,7 +307,7 @@ pub fn compute_rca_xyz_table(codon_counts: &CodonUsageByResidue) -> RCAxyzTable 
     // We'll need these sums to normalize the frequencies
     let mut base_position_sums = [0.0, 0.0, 0.0];
 
-    for codons in codon_counts.values() {
+    for codons in codon_usage.values() {
         for (codon, &count) in codons {
             // codon is something like "ATG"
             let count_f64 = count;
@@ -331,7 +331,7 @@ pub fn compute_rca_xyz_table(codon_counts: &CodonUsageByResidue) -> RCAxyzTable 
 
     // 2) Finally compute rca_xyz(codon) = f(xyz) / (f1(x)*f2(y)*f3(z))
     let mut rca_xyz: HashMap<Codon, f64> = HashMap::new();
-    for codons in codon_counts.values() {
+    for codons in codon_usage.values() {
         for (cdon, &freq) in codons {
             let mut pos_factor = 1.0;
             for (i, base_char) in cdon.to_string().chars().enumerate() {
