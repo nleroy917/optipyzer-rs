@@ -233,12 +233,20 @@ pub fn translate_dna_sequence(query: &str) -> Result<String> {
 
     for codon in query.chars().collect::<Vec<char>>().chunks(3) {
         let codon: String = codon.iter().collect();
-        let codon = Codon::from(codon.as_str());
-        if let Some(aa) = codon_to_aa_map.convert(&codon) {
-            translated_sequence.push(aa);
-        } else {
-            anyhow::bail!("Invalid codon found in sequence: {codon}")
+        let codon = Codon::try_from(codon.as_str());
+
+        match codon {
+            Ok(c) => {
+                if let Some(aa) = codon_to_aa_map.convert(&c) {
+                    translated_sequence.push(aa);
+                } else {
+                    anyhow::bail!("Invalid codon found in sequence: {c}")
+                }
+            }
+            Err(e) => anyhow::bail!(e)
         }
+
+        
     }
 
     Ok(translated_sequence)
@@ -309,6 +317,27 @@ mod tests {
     #[fixture]
     fn org_weights() -> SpeciesWeights {
         HashMap::from([(1, 0.33), (2, 0.67)])
+    }
+
+    #[rstest]
+    fn test_detect_sequence_type() {
+        // successful cases
+        assert_eq!(detect_sequence_type("ATCG").unwrap(), SequenceType::Dna);
+        assert_eq!(detect_sequence_type("ACDEFGHIKLMNPQRSTVWY*").unwrap(), SequenceType::Protein);
+
+        // unsuccessful cases -- X is invalid!
+        assert_eq!(detect_sequence_type("ATCGX").is_err(), true);
+        assert_eq!(detect_sequence_type("ACDEFGHIKLMNPQRSTVWY*Z").is_err(), true);
+    }
+
+    #[rstest]
+    fn test_translate_dna_sequence() {
+        // successful case
+        assert_eq!(translate_dna_sequence("ATGGCC").unwrap(), "MA");
+
+        // unsuccessful cases
+        assert_eq!(translate_dna_sequence("ATGGC").is_err(), true); // Not divisible by 3
+        assert_eq!(translate_dna_sequence("ATGXCC").is_err(), true); // Invalid codon
     }
 
     #[rstest]
