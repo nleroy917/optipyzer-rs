@@ -2,8 +2,10 @@ use std::collections::HashMap;
 use std::io::Read;
 
 use anyhow::Result;
-use bio::bio_types::sequence::Sequence;
 use bio::io::fasta;
+use rand::distributions::WeightedIndex;
+use rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
 
 use crate::consts::{CodonToAA, SequenceType, VALID_AMINO_ACIDS, VALID_NUCLEOTIDES};
 use crate::models::Codon;
@@ -215,10 +217,10 @@ pub fn detect_sequence_type(query: &str) -> Result<SequenceType> {
 
 ///
 /// Converts a DNA sequence to a protein sequence
-/// 
+///
 /// # Arguments
 /// - query
-/// 
+///
 /// # Returns
 /// - translated_sequence
 ///
@@ -243,14 +245,37 @@ pub fn translate_dna_sequence(query: &str) -> Result<String> {
                     anyhow::bail!("Invalid codon found in sequence: {c}")
                 }
             }
-            Err(e) => anyhow::bail!(e)
+            Err(e) => anyhow::bail!(e),
         }
-
-        
     }
 
     Ok(translated_sequence)
+}
 
+///
+/// Selects a random codon give a residue according to the weights in the usage data
+///
+/// # Arguments
+/// - residue to select for
+/// - usage data
+///
+/// # Returns
+/// - selected codon
+pub fn select_random_codon_from_usage_table(
+    residue: char,
+    usage_data: &CodonUsageByResidue,
+    seed: Option<i32>,
+) -> Result<Codon> {
+    let seed = seed.unwrap_or(42);
+    let mut rng = ChaCha8Rng::seed_from_u64(seed as u64);
+    if let Some(usage_for_residue) = usage_data.get(&residue) {
+        // quickly iterate to get paired list of codons and weights
+        let (codons, weightings): (Vec<Codon>, Vec<f64>) = usage_for_residue.iter().unzip();
+        let dist = WeightedIndex::new(weightings)?;
+        Ok(codons[dist.sample(&mut rng)])
+    } else {
+        anyhow::bail!("Invalid residue passed in: {residue}")
+    }
 }
 
 #[cfg(test)]
@@ -323,11 +348,17 @@ mod tests {
     fn test_detect_sequence_type() {
         // successful cases
         assert_eq!(detect_sequence_type("ATCG").unwrap(), SequenceType::Dna);
-        assert_eq!(detect_sequence_type("ACDEFGHIKLMNPQRSTVWY*").unwrap(), SequenceType::Protein);
+        assert_eq!(
+            detect_sequence_type("ACDEFGHIKLMNPQRSTVWY*").unwrap(),
+            SequenceType::Protein
+        );
 
         // unsuccessful cases -- X is invalid!
         assert_eq!(detect_sequence_type("ATCGX").is_err(), true);
-        assert_eq!(detect_sequence_type("ACDEFGHIKLMNPQRSTVWY*Z").is_err(), true);
+        assert_eq!(
+            detect_sequence_type("ACDEFGHIKLMNPQRSTVWY*Z").is_err(),
+            true
+        );
     }
 
     #[rstest]

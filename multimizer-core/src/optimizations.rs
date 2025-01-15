@@ -2,7 +2,11 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 
-use crate::models::Codon;
+use crate::{
+    consts::SequenceType,
+    models::Codon,
+    utils::{detect_sequence_type, translate_dna_sequence},
+};
 
 // type names for readability
 pub type SpeciesWeights = HashMap<i32, f64>;
@@ -39,6 +43,17 @@ pub fn optimize_for_single_organism(
     codon_usage: &CodonUsageByResidue,
     options: &OptimizationOptions,
 ) -> Result<()> {
+    // detect sequence type, translate if necessary
+    let seq_type = detect_sequence_type(query)?;
+    let query = match seq_type {
+        SequenceType::Dna => {
+            // otherwise translate the sequence
+            let query = translate_dna_sequence(query)?;
+            query.to_string()
+        }
+        SequenceType::Protein => query.to_string(),
+    };
+
     Ok(())
 }
 

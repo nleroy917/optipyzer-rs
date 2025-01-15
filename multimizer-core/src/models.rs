@@ -1,5 +1,5 @@
-use std::{collections::HashMap, fmt::Display};
 use std::convert::TryFrom;
+use std::{collections::HashMap, fmt::Display};
 
 pub type ProhibitedCodons = HashMap<char, Vec<Codon>>;
 
@@ -21,7 +21,7 @@ pub struct Organism {
 }
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum Codon {
     AAA,
     AAC,
