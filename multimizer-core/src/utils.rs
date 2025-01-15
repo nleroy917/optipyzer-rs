@@ -69,7 +69,7 @@ pub fn remove_prohibited_codons(
 
     // step 2 -- identify inaccessable residues (residues with all codons prohibited)
     for (aa, codons) in prohibited_codons.iter() {
-        if codons.len() == *num_codons_by_residue.get(&aa).unwrap() as usize {
+        if codons.len() == *num_codons_by_residue.get(aa).unwrap() as usize {
             todo!("What do we do with residues that have no accessible codons?");
             return Err(anyhow::anyhow!("Residue {} has no accessible codons", aa));
         }

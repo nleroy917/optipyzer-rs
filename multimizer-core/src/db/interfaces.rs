@@ -202,7 +202,7 @@ mod tests {
             .collect();
 
         for (codon, count) in codons_with_count {
-            let pulled_codon_usage = usage.get(&codon.into()).unwrap();
+            let pulled_codon_usage = usage.get(&codon.try_into().unwrap()).unwrap();
             assert_eq!(pulled_codon_usage, count);
         }
     }

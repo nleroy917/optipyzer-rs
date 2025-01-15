@@ -14,6 +14,8 @@ pub fn get_database_file_path() -> Result<PathBuf> {
             if path.exists() {
                 return Ok(path);
             }
+        } else {
+            continue
         }
     }
 

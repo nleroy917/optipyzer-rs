@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 
-use crate::{models::Codon, utils::remove_prohibited_codons};
+use crate::models::Codon;
 
 // type names for readability
 pub type SpeciesWeights = HashMap<i32, f64>;
