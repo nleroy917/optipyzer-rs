@@ -34,44 +34,12 @@ pub struct OptimizationResult {
     pub translated_seq: String,
 }
 
-///
-/// Optimize a query dna sequence given organism codon usage data
-/// and a weighting factor for the usage frequency of each organism.
-///
-/// # Arguments
-/// - query: The dna sequence to optimize
-/// - codon_usage: The codon usage data for each organism
-/// - weights: The weighting factor for the usage frequency of each organism
-/// - optimization_options: The options for the optimization
-///
-/// # Returns
-/// - The optimized dna sequence
-///
-pub fn optimize_sequence(
+pub fn optimize_for_single_organism(
     query: &str,
-    codon_usage: &CodonUsageByResidueByOrganism,
-    weights: f64,
-    optimization_options: &OptimizationOptions,
-) -> Result<OptimizationResult> {
-    let mut optimized_sequence = String::from(query);
-
-    // remove prohibited codons
-    let codon_usage = remove_prohibited_codons(
-        codon_usage,
-        optimization_options.prohibited_preference_threshold,
-    )?;
-
-    // compute weighted average codon table
-
-    // precompute rca_xyz
-
-    // stochastic codon selection + RCA validation + iteration
-
-    Ok(OptimizationResult {
-        seq: optimized_sequence,
-        iterations: 0,
-        translated_seq: String::from("mwytqk"),
-    })
+    codon_usage: &CodonUsageByResidue,
+    options: &OptimizationOptions,
+) -> Result<()> {
+    Ok(())
 }
 
 pub fn optimize_seq_test(query: &str) -> String {

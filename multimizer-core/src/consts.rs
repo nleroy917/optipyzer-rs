@@ -214,3 +214,9 @@ impl Default for CodonToAA {
         Self::new()
     }
 }
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub enum SequenceType {
+    Dna,
+    Protein,
+}

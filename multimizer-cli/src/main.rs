@@ -12,9 +12,6 @@ use crate::codon_usage::pull_codon_usage_for_org;
 fn main() {
     let cli = Cli::parse();
 
-    let verbose = cli.verbose;
-    let debug = cli.debug;
-
     match cli.cmd {
         Some(cli::Commands::Optimize { query }) => {
             let query = match query {

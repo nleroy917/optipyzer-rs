@@ -2,8 +2,10 @@ use std::collections::HashMap;
 use std::io::Read;
 
 use anyhow::Result;
+use bio::bio_types::sequence::Sequence;
 use bio::io::fasta;
 
+use crate::consts::{CodonToAA, SequenceType, VALID_AMINO_ACIDS, VALID_NUCLEOTIDES};
 use crate::models::Codon;
 use crate::optimizations::{CodonUsageByResidue, CodonUsageByResidueByOrganism, SpeciesWeights};
 
@@ -173,6 +175,74 @@ pub fn parse_fasta_sequences_from_string(input: &str) -> Result<HashMap<String, 
     }
 
     Ok(sequences)
+}
+
+///
+/// Detect the type of the sequence (either DNA or Protein)
+/// if the sequence type can't be determined, we return None
+///
+/// # Arguments
+/// - query
+///
+/// # Returns
+/// - sequence type enum
+///
+pub fn detect_sequence_type(query: &str) -> Result<SequenceType> {
+    // if everything is ATCG --> DNA
+    if query
+        .chars()
+        .all(|residue| VALID_NUCLEOTIDES.contains(residue))
+    {
+        Ok(SequenceType::Dna)
+    // else if everything is ACDEFGHIKLMNPQRSTVWY*
+    } else if query
+        .chars()
+        .all(|residue| VALID_AMINO_ACIDS.contains(residue))
+    {
+        Ok(SequenceType::Protein)
+    // otherwise you gave me something weird
+    } else {
+        for (pos, r) in query.chars().enumerate() {
+            if !VALID_NUCLEOTIDES.contains(r) && !VALID_AMINO_ACIDS.contains(r) {
+                anyhow::bail!(
+                    "Could not determine the sequence type. Invalid residue {r} at position {pos}"
+                )
+            }
+        }
+        anyhow::bail!("Unknown error occured determining the sequence type! How did we get here?")
+    }
+}
+
+///
+/// Converts a DNA sequence to a protein sequence
+/// 
+/// # Arguments
+/// - query
+/// 
+/// # Returns
+/// - translated_sequence
+///
+pub fn translate_dna_sequence(query: &str) -> Result<String> {
+    let codon_to_aa_map = CodonToAA::new();
+    let mut translated_sequence = String::new();
+
+    // verify sequence length
+    if query.len() % 3 != 0 {
+        anyhow::bail!("The sequence cannot be translated because it is not divisible by 3!")
+    }
+
+    for codon in query.chars().collect::<Vec<char>>().chunks(3) {
+        let codon: String = codon.iter().collect();
+        let codon = Codon::from(codon.as_str());
+        if let Some(aa) = codon_to_aa_map.convert(&codon) {
+            translated_sequence.push(aa);
+        } else {
+            anyhow::bail!("Invalid codon found in sequence: {codon}")
+        }
+    }
+
+    Ok(translated_sequence)
+
 }
 
 #[cfg(test)]
