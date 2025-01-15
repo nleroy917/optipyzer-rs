@@ -62,9 +62,9 @@ pub fn remove_prohibited_codons(
             for (codon, pref) in preferences {
                 if *pref < prohibited_threshold {
                     if prohibited_codons.contains_key(aa) {
-                        prohibited_codons.get_mut(aa).unwrap().push(codon.clone());
+                        prohibited_codons.get_mut(aa).unwrap().push(*codon);
                     } else {
-                        prohibited_codons.insert(*aa, vec![codon.clone()]);
+                        prohibited_codons.insert(*aa, vec![*codon]);
                     }
                 }
             }
@@ -88,7 +88,7 @@ pub fn remove_prohibited_codons(
                 if !prohibited_codons.contains_key(aa)
                     || !prohibited_codons.get(aa).unwrap().contains(codon)
                 {
-                    corrected_preferences.insert(codon.clone(), *pref);
+                    corrected_preferences.insert(*codon, *pref);
                 }
             }
             corrected_org_usage_data.insert(*aa, corrected_preferences);
@@ -103,7 +103,7 @@ pub fn remove_prohibited_codons(
             let total: f64 = preferences.values().sum();
             let mut renormalized_preferences: HashMap<Codon, f64> = HashMap::new();
             for (codon, pref) in preferences {
-                renormalized_preferences.insert(codon.clone(), pref / total);
+                renormalized_preferences.insert(codon, pref / total);
             }
             renormalized_org_usage_data.insert(aa, renormalized_preferences);
         }
@@ -141,11 +141,11 @@ pub fn build_averaged_table(
                         averaged_table
                             .get_mut(aa)
                             .unwrap()
-                            .insert(codon.clone(), pref * weights.get(org_id).unwrap());
+                            .insert(*codon, pref * weights.get(org_id).unwrap());
                     }
                 } else {
                     let mut new_preferences: HashMap<Codon, f64> = HashMap::new();
-                    new_preferences.insert(codon.clone(), pref * weights.get(org_id).unwrap());
+                    new_preferences.insert(*codon, pref * weights.get(org_id).unwrap());
                     averaged_table.insert(*aa, new_preferences);
                 }
             }
@@ -307,10 +307,10 @@ pub fn compute_rca_xyz_table(codon_counts: &CodonUsageByResidue) -> RCAxyzTable 
     // We'll need these sums to normalize the frequencies
     let mut base_position_sums = [0.0, 0.0, 0.0];
 
-    for (_residue, codons) in codon_counts {
+    for codons in codon_counts.values() {
         for (codon, &count) in codons {
             // codon is something like "ATG"
-            let count_f64 = count as f64;
+            let count_f64 = count;
             for (i, base_char) in codon.to_string().chars().enumerate() {
                 *base_position[i].entry(base_char).or_insert(0.0) += count_f64;
             }
@@ -331,25 +331,57 @@ pub fn compute_rca_xyz_table(codon_counts: &CodonUsageByResidue) -> RCAxyzTable 
 
     // 2) Finally compute rca_xyz(codon) = f(xyz) / (f1(x)*f2(y)*f3(z))
     let mut rca_xyz: HashMap<Codon, f64> = HashMap::new();
-    for (cdon, &freq) in codon_counts {
-        let mut pos_factor = 1.0;
-        for (i, base_char) in cdon.to_string().chars().enumerate() {
-            if let Some(bfreq) = base_position[i].get(&base_char) {
-                pos_factor *= bfreq;
-            } else {
-                // If for some reason the base is missing, handle gracefully
-                // But in typical usage, all A/T/C/G should be present
-                pos_factor *= 0.0;
+    for codons in codon_counts.values() {
+        for (cdon, &freq) in codons {
+            let mut pos_factor = 1.0;
+            for (i, base_char) in cdon.to_string().chars().enumerate() {
+                if let Some(bfreq) = base_position[i].get(&base_char) {
+                    pos_factor *= bfreq;
+                } else {
+                    pos_factor = 0.0;
+                    break;
+                }
             }
-        }
-        if pos_factor > 0.0 {
-            rca_xyz.insert(cdon.clone(), freq / pos_factor);
-        } else {
-            rca_xyz.insert(cdon.clone(), 0.0);
+            if pos_factor > 0.0 {
+                rca_xyz.insert(*cdon, freq / pos_factor);
+            } else {
+                rca_xyz.insert(*cdon, 0.0);
+            }
         }
     }
 
     rca_xyz
+}
+
+/// TODO: this was from chat... lets verify that this works.
+/// Compute the overall RCA for a given DNA string, using the rca_xyz_table.
+/// We'll assume optimized_dna.len() is a multiple of 3, and every codon is present in the table.
+pub fn compute_rca(optimized_dna: &str, rca_xyz_table: &RCAxyzTable) -> Result<f64> {
+    let length = optimized_dna.len();
+    if length % 3 != 0 {
+        anyhow::bail!("DNA length is not multiple of 3!")
+    }
+
+    let num_codons = length / 3;
+    let mut product = 1.0f64;
+
+    for chunk in optimized_dna.as_bytes().chunks(3) {
+        let codon = std::str::from_utf8(chunk).unwrap(); // e.g. "ATG"
+        let codon = match Codon::try_from(codon) {
+            Ok(codon) => codon,
+            Err(e) => anyhow::bail!("There was an error reading the sequence codon: {e}")
+        };
+
+        if let Some(&rca_val) = rca_xyz_table.get(&codon) {
+            product *= rca_val;
+        } else {
+            // skip!
+        }
+    }
+
+    let rca = product.powf(1.0 / (num_codons as f64));
+
+    Ok(rca)
 }
 
 #[cfg(test)]

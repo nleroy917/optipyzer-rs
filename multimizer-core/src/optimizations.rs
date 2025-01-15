@@ -80,6 +80,8 @@ pub fn optimize_for_single_organism(
 ///
 /// Dummy test function
 /// 
+/// This is not to be used.
+/// 
 pub fn optimize_seq_test(query: &str) -> String {
     String::from(query)
 }
@@ -88,14 +90,15 @@ pub fn optimize_seq_test(query: &str) -> String {
 mod tests {
     use super::*;
 
-    use pretty_assertions::assert_eq;
-    use rstest::{fixture, rstest};
+    // use pretty_assertions::assert_eq;
+    // use rstest::{fixture, rstest};
+    use rstest::fixture;
 
-    const EPSILON: f64 = 1e-6;
+    // const EPSILON: f64 = 1e-6;
 
-    fn approx_equal(a: f64, b: f64, epsilon: f64) -> bool {
-        (a - b).abs() < epsilon
-    }
+    // fn approx_equal(a: f64, b: f64, epsilon: f64) -> bool {
+    //     (a - b).abs() < epsilon
+    // }
 
     #[fixture]
     fn org_usage1() -> HashMap<char, HashMap<Codon, f32>> {
