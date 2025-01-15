@@ -11,6 +11,8 @@ use crate::consts::{CodonToAA, SequenceType, VALID_AMINO_ACIDS, VALID_NUCLEOTIDE
 use crate::models::Codon;
 use crate::optimizations::{CodonUsageByResidue, CodonUsageByResidueByOrganism, SpeciesWeights};
 
+pub type RCAxyzTable = HashMap<Codon, f64>;
+
 ///
 /// This function does three things in turn:
 /// 1. Identify "prohibited codons" -- codons that fall below a usage threshold and should not be used in the sequence.
@@ -261,6 +263,7 @@ pub fn translate_dna_sequence(query: &str) -> Result<String> {
 ///
 /// # Returns
 /// - selected codon
+///
 pub fn select_random_codon_from_usage_table(
     residue: char,
     usage_data: &CodonUsageByResidue,
@@ -276,6 +279,77 @@ pub fn select_random_codon_from_usage_table(
     } else {
         anyhow::bail!("Invalid residue passed in: {residue}")
     }
+}
+
+///
+/// Compute the RCAxyz table for a given codon usage data table
+/// 
+/// It works according to the following formula:
+/// $$
+/// rca_{xyz}(codon) = \frac{f(codon)}{f1(x) * f2(y) * f3(z)}
+/// $$
+/// 
+/// # Arguments
+/// - codon counds for an organism
+/// 
+/// # Returns
+/// - the computed rca table
+/// 
+pub fn compute_rca_xyz_table(codon_counts: &CodonUsageByResidue) -> RCAxyzTable {
+
+    // 1) Compute base frequency by position
+    //    base_position[pos][base], with pos in {0,1,2} for codon positions
+    let mut base_position: [HashMap<char, f64>; 3] = [
+        HashMap::new(),
+        HashMap::new(),
+        HashMap::new(),
+    ];
+    // We'll need these sums to normalize the frequencies
+    let mut base_position_sums = [0.0, 0.0, 0.0];
+
+    for (_residue, codons) in codon_counts {
+        for (codon, &count) in codons {
+            // codon is something like "ATG"
+            let count_f64 = count as f64;
+            for (i, base_char) in codon.to_string().chars().enumerate() {
+                *base_position[i].entry(base_char).or_insert(0.0) += count_f64;
+            }
+        }
+    }
+    // Convert each position’s counts into frequencies
+    // First find sum per position
+    for (pos, base_map) in base_position.iter().enumerate() {
+        let sum_pos: f64 = base_map.values().sum();
+        base_position_sums[pos] = sum_pos;
+    }
+    // Normalize: base_position[pos][base] /= sum for that pos
+    for pos in 0..3 {
+        for base_val in base_position[pos].values_mut() {
+            *base_val /= base_position_sums[pos];
+        }
+    }
+
+    // 2) Finally compute rca_xyz(codon) = f(xyz) / (f1(x)*f2(y)*f3(z))
+    let mut rca_xyz: HashMap<Codon, f64> = HashMap::new();
+    for (cdon, &freq) in codon_counts {
+        let mut pos_factor = 1.0;
+        for (i, base_char) in cdon.to_string().chars().enumerate() {
+            if let Some(bfreq) = base_position[i].get(&base_char) {
+                pos_factor *= bfreq;
+            } else {
+                // If for some reason the base is missing, handle gracefully
+                // But in typical usage, all A/T/C/G should be present
+                pos_factor *= 0.0;
+            }
+        }
+        if pos_factor > 0.0 {
+            rca_xyz.insert(cdon.clone(), freq / pos_factor);
+        } else {
+            rca_xyz.insert(cdon.clone(), 0.0);
+        }
+    }
+
+    rca_xyz
 }
 
 #[cfg(test)]

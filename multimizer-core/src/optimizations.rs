@@ -5,7 +5,7 @@ use anyhow::Result;
 use crate::{
     consts::SequenceType,
     models::Codon,
-    utils::{detect_sequence_type, translate_dna_sequence},
+    utils::{detect_sequence_type, select_random_codon_from_usage_table, translate_dna_sequence},
 };
 
 // type names for readability
@@ -38,6 +38,18 @@ pub struct OptimizationResult {
     pub translated_seq: String,
 }
 
+///
+/// Optimize a query sequence for a particular organism. This sequence
+/// can be either protein or DNA.
+/// 
+/// # Arguments
+/// - query seq
+/// - codon usage data for organism
+/// - options for the optimization algorithm
+/// 
+/// # Returns
+/// - optimized sequence
+/// 
 pub fn optimize_for_single_organism(
     query: &str,
     codon_usage: &CodonUsageByResidue,
@@ -54,9 +66,20 @@ pub fn optimize_for_single_organism(
         SequenceType::Protein => query.to_string(),
     };
 
+    let mut optimized_sequence = String::new();
+
+    for residue in query.chars() {
+        let random_codon =
+            select_random_codon_from_usage_table(residue, codon_usage, Some(options.seed))?;
+        optimized_sequence.push_str(&random_codon.to_string());
+    }
+
     Ok(())
 }
 
+///
+/// Dummy test function
+/// 
 pub fn optimize_seq_test(query: &str) -> String {
     String::from(query)
 }
