@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
 import { ThemeProvider } from '@/components/theme-provider';
-import { ThemeToggle } from '@/components/theme-toggle';
+// import { ThemeToggle } from '@/components/theme-toggle';
 import { CodonDatabaseProvider } from '@/contexts/codon-database-context';
 
 const geistSans = Geist({
@@ -32,12 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} max-w-7xl mx-auto min-h-svh bg-background font-sans antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <CodonDatabaseProvider>
-            {children}
-            <footer>
-              <ThemeToggle />
-            </footer>
-          </CodonDatabaseProvider>
+          <CodonDatabaseProvider>{children}</CodonDatabaseProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -15,7 +15,7 @@ pub fn get_database_file_path() -> Result<PathBuf> {
                 return Ok(path);
             }
         } else {
-            continue
+            continue;
         }
     }
 
