@@ -1,5 +1,3 @@
-'use client';
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { fetchDbAndInit, executeQuery } from '../lib/sqlite';
 import { BindParams, Database, QueryExecResult } from 'sql.js';
@@ -10,6 +8,7 @@ type CodonDatabaseContextType = {
   query: (query: string, params?: BindParams) => Promise<QueryExecResult | null>;
   loading: boolean;
   error: string | null;
+  progress: number;
 };
 
 const CodonDatabaseContext = createContext<CodonDatabaseContextType | null>(null);
@@ -18,12 +17,13 @@ export const CodonDatabaseProvider: React.FC<{ children: React.ReactNode }> = ({
   const [db, setDb] = useState<Database | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const initializeDatabase = async () => {
       setLoading(true);
       try {
-        return await fetchDbAndInit(DB_URL);
+        return await fetchDbAndInit(DB_URL, (progressFraction) => setProgress(progressFraction));
       } catch (err) {
         console.error(err);
         setError('There was an error reading the database. Please try again later.');
@@ -43,7 +43,11 @@ export const CodonDatabaseProvider: React.FC<{ children: React.ReactNode }> = ({
     return executeQuery(db, sql, params);
   };
 
-  return <CodonDatabaseContext.Provider value={{ query, loading, error }}>{children}</CodonDatabaseContext.Provider>;
+  return (
+    <CodonDatabaseContext.Provider value={{ query, loading, error, progress }}>
+      {children}
+    </CodonDatabaseContext.Provider>
+  );
 };
 
 export const useCodonDatabase = () => {
