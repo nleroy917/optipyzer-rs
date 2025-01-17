@@ -1,54 +1,58 @@
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Code, MoreHorizontal, SaveIcon, ShareIcon } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+import { SpeciesSelect } from './species-select';
 
 interface OptimizationPlaygroundProps {
   query: string;
   setQuery: (query: string) => void;
+  dbLoadingProgress: number;
+  dbLoadingError: string | null;
+  dbLoading: boolean;
+  orgId: string | undefined;
+  setOrgId: (val: string) => void;
 }
 
 export const OptimizationPlayground = (props: OptimizationPlaygroundProps) => {
-  const { query, setQuery } = props;
+  const { query, setQuery, dbLoading, dbLoadingError, dbLoadingProgress, orgId, setOrgId } = props;
+
   return (
     <Card>
-      <CardHeader className="p-0 border-b flex flex-row items-center justify-between">
-        <div className="px-6 py-4">
+      <CardHeader className="p-0 border-b">
+        <div className="px-6 py-4 flex items-center justify-between">
           <CardTitle>Optimize sequences</CardTitle>
+          {dbLoading ? (
+            <span className="text-xs font-bold rounded-full px-2 py-1 bg-amber-100 text-amber-800 flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500" />
+              </span>
+              Initializing
+            </span>
+          ) : (
+            <span className="text-xs font-bold rounded-full px-2 py-1 bg-emerald-100 text-emerald-800 flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+              </span>
+              Ready
+            </span>
+          )}
+          {dbLoadingError && <p className="text-red-500">{dbLoadingError}</p>}
         </div>
-        <div className="px-6 py-2 flex flex-row items-center gap-2">
-          <Button size="sm" variant="outline">
-            <SaveIcon size={16} />
-            Save
-          </Button>
-          <Button size="sm" variant="outline">
-            <ShareIcon size={16} />
-            Share
-          </Button>
-          <Button size="sm" variant="outline">
-            <Code size={16} />
-            View code
-          </Button>
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <MoreHorizontal size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>About</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">Reset</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="w-full relative">
+          <motion.div
+            style={{
+              width: `${dbLoadingProgress * 100}%`,
+            }}
+            className={cn(
+              'absolute top-0 left-0 w-full h-0.5 bg-amber-300 transition-transform duration-300',
+              dbLoadingProgress === 1 && 'bg-emerald-300',
+            )}
+          />
         </div>
       </CardHeader>
       <CardContent className="p-4 grid grid-cols-4 gap-4">
@@ -61,6 +65,10 @@ export const OptimizationPlayground = (props: OptimizationPlaygroundProps) => {
           />
         </div>
         <div className="col-span-1 flex flex-col gap-4">
+          <div className="flex flex-col">
+            <label className="font-semibold text-sm">Species:</label>
+            <SpeciesSelect value={orgId} setValue={setOrgId} />
+          </div>
           <div>
             <label className="font-semibold text-sm">Seed:</label>
             <Input placeholder="42" />

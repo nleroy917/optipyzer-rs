@@ -15,7 +15,7 @@ const CodonDatabaseContext = createContext<CodonDatabaseContextType | null>(null
 
 export const CodonDatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [db, setDb] = useState<Database | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
 
@@ -34,6 +34,7 @@ export const CodonDatabaseProvider: React.FC<{ children: React.ReactNode }> = ({
 
     initializeDatabase().then((db) => {
       setDb(db || null);
+      if (db) console.info('Database initialized');
     });
   }, []);
 

@@ -73,17 +73,16 @@ export const executeQuery = async (db: Database, query: string, params: BindPara
   if (!sqliteInstance) {
     throw new Error('Database not initialized. Call `fetchAndCacheDatabase` first.');
   }
-  // Execute query and return results
-  const result = sqliteInstance.exec(query, params);
+  const result = db.exec(query, params);
   return result.length ? result[0] : null; // Return the first result set
 };
 
 // TODO: Add ETag support in the future for cache invalidation
-async function getETag(url: string): Promise<string | null> {
-  // Using HEAD request
-  const resp = await fetch(url, { method: 'HEAD' });
-  if (!resp.ok) {
-    throw new Error(`HEAD request failed with status ${resp.status}`);
-  }
-  return resp.headers.get('ETag');
-}
+// async function getETag(url: string): Promise<string | null> {
+//   // Using HEAD request
+//   const resp = await fetch(url, { method: 'HEAD' });
+//   if (!resp.ok) {
+//     throw new Error(`HEAD request failed with status ${resp.status}`);
+//   }
+//   return resp.headers.get('ETag');
+// }
