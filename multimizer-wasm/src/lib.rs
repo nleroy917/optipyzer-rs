@@ -29,7 +29,7 @@ pub fn parse_fasta_sequences_from_string_js(input: &str) -> Result<JsValue, JsVa
     }
 }
 
-#[wasm_bindgen]
-pub fn optimize(query: &str) -> String {
-    optimize_seq_test(query)
-}
+// #[wasm_bindgen(js_name="optimizeSequence")]
+// pub fn optimize(query: &str)
+
+
