@@ -4,6 +4,7 @@ import { OptimizationPlayground } from '@/components/optimizer/playground';
 import { useCodonDatabase } from '@/contexts/codon-database-context';
 import Layout from '@/components/layout';
 import { useCodonUsageForSpecies } from '@/queries/use-codon-usage';
+import { convertQueryResultToObjects } from '@/lib/utils';
 
 export default function Home() {
   const [query, setQuery] = useState('');
@@ -32,10 +33,12 @@ export default function Home() {
         </div>
         <div>
           <code>
-            <pre>
-              OrdId: {orgId}
-              Usage: {JSON.stringify(codonUsage, null, 2)}
-            </pre>
+            {codonUsage && (
+              <pre>
+                OrdId: {orgId}
+                Usage: {JSON.stringify(convertQueryResultToObjects(codonUsage), null, 2)}
+              </pre>
+            )}
           </code>
         </div>
       </div>

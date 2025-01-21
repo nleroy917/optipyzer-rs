@@ -1,12 +1,17 @@
 mod models;
 mod utils;
 
-use multimizer::optimizations::optimize_seq_test;
+
+use multimizer::optimizations::{optimize_for_single_organism, OptimizationOptions};
 use multimizer::utils::parse_fasta_sequences_from_string;
 
 use wasm_bindgen::prelude::*;
 
-use crate::models::ParsedFastaSequences;
+use crate::models::{
+    JsCodonUsage,
+    JsOptimizationResult,
+    ParsedFastaSequences
+};
 
 #[wasm_bindgen]
 extern "C" {
@@ -29,7 +34,11 @@ pub fn parse_fasta_sequences_from_string_js(input: &str) -> Result<JsValue, JsVa
     }
 }
 
-// #[wasm_bindgen(js_name="optimizeSequence")]
-// pub fn optimize(query: &str)
+#[wasm_bindgen(js_name = "optimizeSequence")]
+pub fn optimize(query: &str, codon_usage: JsValue) -> Result<JsValue, JsValue> {
+    let codon_usage: JsCodonUsage = serde_wasm_bindgen::from_value(codon_usage)?;
+    let opts = OptimizationOptions::default();
+    let res = optimize_for_single_organism(query, &codon_usage, &opts)?;
 
-
+    Ok(serde_wasm_bindgen::to_value(&res))
+}

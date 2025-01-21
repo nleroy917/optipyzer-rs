@@ -30,7 +30,7 @@ export const OptimizationPlayground = (props: OptimizationPlaygroundProps) => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500" />
               </span>
-              Initializing
+              Initializing database
             </span>
           ) : (
             <span className="text-xs font-bold rounded-full px-2 py-1 bg-emerald-100 text-emerald-800 flex items-center gap-2">
@@ -38,7 +38,7 @@ export const OptimizationPlayground = (props: OptimizationPlaygroundProps) => {
                 <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
               </span>
-              Ready
+              Database ready
             </span>
           )}
           {dbLoadingError && <p className="text-red-500">{dbLoadingError}</p>}

@@ -5,7 +5,10 @@ use anyhow::Result;
 use crate::{
     consts::SequenceType,
     models::Codon,
-    utils::{compute_rca, compute_rca_xyz_table, detect_sequence_type, select_random_codon_from_usage_table, translate_dna_sequence},
+    utils::{
+        compute_rca, compute_rca_xyz_table, detect_sequence_type,
+        select_random_codon_from_usage_table, translate_dna_sequence,
+    },
 };
 
 // type names for readability
@@ -36,27 +39,26 @@ pub struct OptimizationResult {
     pub seq: String,
     pub iterations: i32,
     pub translated_seq: String,
-    pub rca_value: f64
+    pub rca_value: f64,
 }
 
 ///
 /// Optimize a query sequence for a particular organism. This sequence
 /// can be either protein or DNA.
-/// 
+///
 /// # Arguments
 /// - query seq
 /// - codon usage data for organism
 /// - options for the optimization algorithm
-/// 
+///
 /// # Returns
 /// - optimized sequence
-/// 
+///
 pub fn optimize_for_single_organism(
     query: &str,
     codon_usage: &CodonUsageByResidue,
     options: &OptimizationOptions,
 ) -> Result<OptimizationResult> {
-    
     // detect sequence type, translate if necessary
     let seq_type = detect_sequence_type(query)?;
     let rca_xyz_table = compute_rca_xyz_table(codon_usage);
@@ -70,29 +72,29 @@ pub fn optimize_for_single_organism(
     };
 
     let mut optimized_sequence = String::new();
-    
+
     for residue in query.chars() {
         let random_codon =
             select_random_codon_from_usage_table(residue, codon_usage, Some(options.seed))?;
         optimized_sequence.push_str(&random_codon.to_string());
     }
 
-    let rca = compute_rca(&optimized_sequence, &rca_xyz_table)?;    
+    let rca = compute_rca(&optimized_sequence, &rca_xyz_table)?;
     let translated_seq = translate_dna_sequence(&optimized_sequence)?;
 
     Ok(OptimizationResult {
         seq: optimized_sequence,
         translated_seq,
         iterations: 1,
-        rca_value: rca
+        rca_value: rca,
     })
 }
 
 ///
 /// Dummy test function
-/// 
+///
 /// This is not to be used.
-/// 
+///
 pub fn optimize_seq_test(query: &str) -> String {
     String::from(query)
 }

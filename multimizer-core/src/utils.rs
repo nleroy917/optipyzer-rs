@@ -283,27 +283,23 @@ pub fn select_random_codon_from_usage_table(
 
 ///
 /// Compute the RCAxyz table for a given codon usage data table
-/// 
+///
 /// It works according to the following formula:
 /// $$
 /// rca_{xyz}(codon) = \frac{f(codon)}{f1(x) * f2(y) * f3(z)}
 /// $$
-/// 
+///
 /// # Arguments
 /// - codon counds for an organism
-/// 
+///
 /// # Returns
 /// - the computed rca table
-/// 
+///
 pub fn compute_rca_xyz_table(codon_usage: &CodonUsageByResidue) -> RCAxyzTable {
-
     // 1) Compute base frequency by position
     //    base_position[pos][base], with pos in {0,1,2} for codon positions
-    let mut base_position: [HashMap<char, f64>; 3] = [
-        HashMap::new(),
-        HashMap::new(),
-        HashMap::new(),
-    ];
+    let mut base_position: [HashMap<char, f64>; 3] =
+        [HashMap::new(), HashMap::new(), HashMap::new()];
     // We'll need these sums to normalize the frequencies
     let mut base_position_sums = [0.0, 0.0, 0.0];
 
@@ -369,7 +365,7 @@ pub fn compute_rca(optimized_dna: &str, rca_xyz_table: &RCAxyzTable) -> Result<f
         let codon = std::str::from_utf8(chunk).unwrap(); // e.g. "ATG"
         let codon = match Codon::try_from(codon) {
             Ok(codon) => codon,
-            Err(e) => anyhow::bail!("There was an error reading the sequence codon: {e}")
+            Err(e) => anyhow::bail!("There was an error reading the sequence codon: {e}"),
         };
 
         if let Some(&rca_val) = rca_xyz_table.get(&codon) {
