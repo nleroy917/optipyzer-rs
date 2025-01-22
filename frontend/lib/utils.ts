@@ -14,13 +14,14 @@ export function convertMapToObject(map: Map<string, string>) {
   return Object.fromEntries(map);
 }
 
-export function convertQueryResultToObjects(result: QueryExecResult) {
+export function convertQueryResultToObjects(result: QueryExecResult, convertKeysToLowercase = false) {
   const { columns, values } = result;
   return values.map((row) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const obj: { [key: string]: any } = {};
     columns.forEach((col, index) => {
-      obj[col] = row[index];
+      const key = convertKeysToLowercase ? col.toLowerCase() : col;
+      obj[key] = row[index];
     });
     return obj;
   });

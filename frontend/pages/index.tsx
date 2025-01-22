@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { optimizeSequence } from 'multimizerjs';
 
+import Layout from '@/components/layout';
 import { OptimizationPlayground } from '@/components/optimizer/playground';
 import { useCodonDatabase } from '@/contexts/codon-database-context';
-import Layout from '@/components/layout';
 import { useCodonUsageForSpecies } from '@/queries/use-codon-usage';
 import { convertQueryResultToObjects } from '@/lib/utils';
 
@@ -33,10 +34,11 @@ export default function Home() {
         </div>
         <div>
           <code>
-            {codonUsage && (
+            {codonUsage && query && (
               <pre>
                 OrdId: {orgId}
-                Usage: {JSON.stringify(convertQueryResultToObjects(codonUsage), null, 2)}
+                Usage: {JSON.stringify(convertQueryResultToObjects(codonUsage, true), null, 2)}
+                Seq: {JSON.stringify(optimizeSequence(query, convertQueryResultToObjects(codonUsage, true)), null, 2)}
               </pre>
             )}
           </code>
