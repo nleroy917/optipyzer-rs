@@ -2,6 +2,7 @@ use std::convert::TryFrom;
 use std::{collections::HashMap, fmt::Display};
 
 pub type ProhibitedCodons = HashMap<char, Vec<Codon>>;
+pub type CodonUsageByResidue = HashMap<char, HashMap<Codon, f64>>;
 
 #[derive(Debug)]
 pub struct Organism {
@@ -23,70 +24,19 @@ pub struct Organism {
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum Codon {
-    AAA,
-    AAC,
-    AAG,
-    AAT,
-    ACA,
-    ACC,
-    ACG,
-    ACT,
-    AGA,
-    AGC,
-    AGG,
-    AGT,
-    ATA,
-    ATC,
-    ATG,
-    ATT,
-    CAA,
-    CAC,
-    CAG,
-    CAT,
-    CCA,
-    CCC,
-    CCG,
-    CCT,
-    CGA,
-    CGC,
-    CGG,
-    CGT,
-    CTA,
-    CTC,
-    CTG,
-    CTT,
-    GAA,
-    GAC,
-    GAG,
-    GAT,
-    GCA,
-    GCC,
-    GCG,
-    GCT,
-    GGA,
-    GGC,
-    GGG,
-    GGT,
-    GTA,
-    GTC,
-    GTG,
-    GTT,
-    TAA,
-    TAC,
-    TAG,
-    TAT,
-    TCA,
-    TCC,
-    TCG,
-    TCT,
-    TGA,
-    TGC,
-    TGG,
-    TGT,
-    TTA,
-    TTC,
-    TTG,
-    TTT,
+    AAA, AAC, AAG, AAT, ACA,
+    ACC, ACG, ACT, AGA, AGC,
+    AGG, AGT, ATA, ATC, ATG,
+    ATT, CAA, CAC, CAG, CAT,
+    CCA, CCC, CCG, CCT, CGA,
+    CGC, CGG, CGT, CTA, CTC,
+    CTG, CTT, GAA, GAC, GAG,
+    GAT, GCA, GCC, GCG, GCT,
+    GGA, GGC, GGG, GGT, GTA,
+    GTC, GTG, GTT, TAA, TAC,
+    TAG, TAT, TCA, TCC, TCG,
+    TCT, TGA, TGC, TGG, TGT,
+    TTA, TTC, TTG, TTT,
 }
 
 impl TryFrom<&str> for Codon {
@@ -237,7 +187,7 @@ impl Display for Codon {
 
 #[derive(Debug)]
 pub struct CodonUsage {
-    codon_usage: HashMap<Codon, i32>,
+    pub codon_usage: HashMap<Codon, i32>,
 }
 
 #[allow(clippy::too_many_arguments)] // better way than just enumerating all codons?
@@ -408,5 +358,64 @@ impl CodonUsage {
             .into_iter()
             .map(|(codon, count)| (codon, count as f32 / total as f32))
             .collect()
+    }
+}
+
+impl From<CodonUsage> for CodonUsageByResidue {
+    fn from(value: CodonUsage) -> Self {
+        let value = value.into_fracs();
+        let mut map: HashMap<char, HashMap<Codon, f64>> = HashMap::new();
+
+        fn create_codon_map(codons: Vec<Codon>, value: &HashMap<Codon, f32>) -> HashMap<Codon, f64> {
+            codons.into_iter()
+                .map(|codon| (codon, *value.get(&codon).unwrap() as f64))
+                .collect()
+        }
+    
+        // F
+        map.insert('F', create_codon_map(vec![Codon::TTT, Codon::TTC], &value));
+        // L
+        map.insert('L', create_codon_map(vec![Codon::TTA, Codon::TTG, Codon::CTT, Codon::CTC, Codon::CTA, Codon::CTG], &value));
+        // I
+        map.insert('I', create_codon_map(vec![Codon::ATT, Codon::ATC, Codon::ATA], &value));
+        // M
+        map.insert('M', create_codon_map(vec![Codon::ATG], &value));
+        // V
+        map.insert('V', create_codon_map(vec![Codon::GTT, Codon::GTC, Codon::GTA, Codon::GTG], &value));
+        // S
+        map.insert('S', create_codon_map(vec![Codon::TCT, Codon::TCC, Codon::TCA, Codon::TCG, Codon::AGT, Codon::AGC], &value));
+        // P
+        map.insert('P', create_codon_map(vec![Codon::CCT, Codon::CCC, Codon::CCA, Codon::CCG], &value));
+        // T
+        map.insert('T', create_codon_map(vec![Codon::ACT, Codon::ACC, Codon::ACA, Codon::ACG], &value));
+        // A
+        map.insert('A', create_codon_map(vec![Codon::GCT, Codon::GCC, Codon::GCA, Codon::GCG], &value));
+        // Y
+        map.insert('Y', create_codon_map(vec![Codon::TAT, Codon::TAC], &value));
+        // H
+        map.insert('H', create_codon_map(vec![Codon::CAT, Codon::CAC], &value));
+        // Q
+        map.insert('Q', create_codon_map(vec![Codon::CAA, Codon::CAG], &value));
+        // N
+        map.insert('N', create_codon_map(vec![Codon::AAT, Codon::AAC], &value));
+        // K
+        map.insert('K', create_codon_map(vec![Codon::AAA, Codon::AAG], &value));
+        // D
+        map.insert('D', create_codon_map(vec![Codon::GAT, Codon::GAC], &value));
+        // E
+        map.insert('E', create_codon_map(vec![Codon::GAA, Codon::GAG], &value));
+        // C
+        map.insert('C', create_codon_map(vec![Codon::TGT, Codon::TGC], &value));
+        // W
+        map.insert('W', create_codon_map(vec![Codon::TGG], &value));
+        // R
+        map.insert('R', create_codon_map(vec![Codon::CGT, Codon::CGC, Codon::CGA, Codon::CGG, Codon::AGA, Codon::AGG], &value));
+        // G
+        map.insert('G', create_codon_map(vec![Codon::GGT, Codon::GGC, Codon::GGA, Codon::GGG], &value));
+        // Stop
+        map.insert('*', create_codon_map(vec![Codon::TAA, Codon::TAG, Codon::TGA], &value));
+    
+        map
+        
     }
 }

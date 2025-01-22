@@ -2,6 +2,7 @@ mod models;
 mod utils;
 
 
+use multimizer::models::CodonUsage;
 use multimizer::optimizations::{optimize_for_single_organism, OptimizationOptions};
 use multimizer::utils::parse_fasta_sequences_from_string;
 
@@ -35,10 +36,24 @@ pub fn parse_fasta_sequences_from_string_js(input: &str) -> Result<JsValue, JsVa
 }
 
 #[wasm_bindgen(js_name = "optimizeSequence")]
-pub fn optimize(query: &str, codon_usage: JsValue) -> Result<JsValue, JsValue> {
+pub fn optimize(query: &str, codon_usage: JsValue) -> Result<JsOptimizationResult, JsError> {
     let codon_usage: JsCodonUsage = serde_wasm_bindgen::from_value(codon_usage)?;
-    let opts = OptimizationOptions::default();
-    let res = optimize_for_single_organism(query, &codon_usage, &opts)?;
+    let codon_usage_rust: CodonUsage = codon_usage.into();
 
-    Ok(serde_wasm_bindgen::to_value(&res))
+    let opts = OptimizationOptions::default();
+    let res = optimize_for_single_organism(query, &codon_usage_rust.into(), &opts);
+
+    match res {
+        Ok(res) => {
+            Ok(JsOptimizationResult {
+                seq: res.seq,
+                iterations: res. iterations,
+                translated_seq: res.translated_seq,
+                rca_value: res.rca_value
+            })
+        },
+        Err(err) => {
+            Err(JsError::new(&err.to_string()))
+        }
+    }   
 }
